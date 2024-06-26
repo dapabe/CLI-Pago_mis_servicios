@@ -11,7 +11,7 @@
   "files": [
     "dist",
     "CHANGELOG.md",
-    "LICENSE.txt"
+    "LICENSE"
   ],
   "scripts": {
     "prepare": "husky",

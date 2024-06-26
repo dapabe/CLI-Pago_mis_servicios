@@ -1,16 +1,17 @@
 {
-  "name": "cli-template",
-  "version": "1.0.0",
+  "name": "cli-pago_mis_servicios",
+  "version": "0.0.0",
   "type": "module",
-  "description": "Modern Node.js Command Line Tool Project Template.",
-  "author": "情绪羊 <emosheep@qq.com>",
-  "license": "MIT",
+  "description": "Modern Node.js Command Line Tool to pay bills automatically.",
+  "author": "Daniel Patricio Becerra <dapadev@hotmail.com>",
+  "license": "Apache-2.0",
   "bin": {
-    "command-name": "./dist/index.js"
+    "pago-servicios": "./dist/index.js"
   },
   "files": [
     "dist",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENCE.txt"
   ],
   "scripts": {
     "prepare": "husky",
@@ -18,8 +19,8 @@
     "lint": "eslint . --fix --ext .js,.ts",
     "build": "tsup",
     "watch": "tsup --watch",
-    "changeset": "changeset",
-    "versions": "changeset version"
+    "commitSemver": "changeset",
+    "addToChangelog": "changeset version"
   },
   "dependencies": {
     "commander": "^12.0.0",

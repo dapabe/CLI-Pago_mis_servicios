@@ -1,4 +1,4 @@
-import { ISupportedServices } from '@/types/generic';
+import { ISupportedServices } from '@/constants/services';
 import { IUserData } from '@/types/releases';
 
 export function retrieveFromSelectedFilledForms(

@@ -4,6 +4,10 @@
   "type": "module",
   "description": "Modern Node.js Command Line Tool to pay bills automatically.",
   "author": "Daniel Patricio Becerra",
+  "repository": {
+    "directory": "dev",
+    "url": "https://github.com/dapabe/CLI-Pago_mis_servicios"
+  },
   "license": "Apache-2.0",
   "bin": {
     "pago-servicios": "./dist/index.js"

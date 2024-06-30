@@ -97,7 +97,7 @@ class Sequence {
     );
     log.info(`Creado y mantenido por ${picocolors.blue(AppPackage.author)}`);
     log.warning(
-      `Si estas teniendo problemas usando la aplicación compartelo \nen: https://github.com/dapabe/CLI-Pago_mis_servicios`,
+      `Si estas teniendo problemas usando la aplicación compartelo \nen: ${AppPackage.repository.url}`,
     );
 
     await this.#checkFile();

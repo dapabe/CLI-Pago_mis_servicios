@@ -5,17 +5,17 @@ import { SupportedServices } from './services';
  * 	the login form changes.
  */
 export const LoginFields = {
-  [SupportedServices.Aysa]: {
+  [SupportedServices.enum.Aysa]: {
     username: '#j_username',
     password: '#j_password',
     submit: '#logOnFormSubmit',
   },
-  [SupportedServices.Edesur]: {
+  [SupportedServices.enum.Edesur]: {
     username: '.show-smart-phone input[type=email]',
     password: 'input[type=password]',
     submit: 'form button',
   },
-  [SupportedServices.Telecentro]: {
+  [SupportedServices.enum.Telecentro]: {
     username: 'input[type=email]',
     password: 'input[type=password]',
     submit: 'button[type=submit]',

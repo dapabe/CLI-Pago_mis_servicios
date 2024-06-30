@@ -3,8 +3,14 @@ dist
 .idea
 .DS_Store
 
-info.json
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Generated info file
+info.json
+
+# Everything but .example.env
+*.env
+!**/*example*.env

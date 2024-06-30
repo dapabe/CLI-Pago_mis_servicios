@@ -14,6 +14,7 @@
     "baseUrl": ".",
     "rootDir": "src",
     "types": ["node"],
+    "typeRoots": ["./node_modules/@types", "global.d.ts"],
     "lib": ["esnext"],
     "paths": {
       "@/*": ["./src/*"]

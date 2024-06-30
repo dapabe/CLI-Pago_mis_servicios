@@ -1,4 +1,4 @@
-import { StepsToAnything } from '../types';
+import { StepsToAnything } from '@/types/generic';
 import { SupportedServices } from './services';
 
 /**
@@ -6,5 +6,5 @@ import { SupportedServices } from './services';
  * 	Some pages dont need this.
  */
 export const StepsToLogin: StepsToAnything = {
-  [SupportedServices.Aysa]: ['#__link1', '#__button13'],
+  [SupportedServices.enum.Aysa]: ['#__link1', '#__button13'],
 };

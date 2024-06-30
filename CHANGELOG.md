@@ -1,13 +1,8 @@
 # cli-template
 
-## 0.1.1
+## 0.0.1
 
 ### Patch Changes
 
-- parche testeado
+- Added migration modules & migrated from old codebase
 
-## 0.1.0
-
-### Minor Changes
-
-- minor v

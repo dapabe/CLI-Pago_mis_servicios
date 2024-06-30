@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { log, outro } from '@clack/prompts';
+import { cancel, intro, log, note, outro } from '@clack/prompts';
 import {
   chromium,
   type Browser,
@@ -20,15 +20,18 @@ import { ServicePages } from './constants/service-pages';
 import { StepsToLastBill } from './constants/steps-to-last-bill';
 import { StepsToLogin } from './constants/steps-to-login';
 import { StepsToPay } from './constants/steps-to-pay';
-import { addServicePrompt } from './prompts/addService.prompt';
-import { changePasswordPrompt } from './prompts/changePassword.prompt';
-import { decryptPrompt } from './prompts/decrypt.prompt';
-import { firstTimePrompt } from './prompts/firstTime.prompt';
-import { navigateOnContextPrompt } from './prompts/navigateOnContext.prompt';
 import { selectMenuActionPrompt } from './prompts/selectMenuAction.prompt';
+import { changePasswordPrompt } from './prompts/startup/changePassword.prompt';
+import { decryptPrompt } from './prompts/startup/decrypt.prompt';
+import { firstTimePrompt } from './prompts/startup/firstTime.prompt';
+import { chooseSupportedServicePrompt } from './prompts/supported-services/chooseSupportedService.prompt';
+
+import pk from '../package.json';
+import { ISupportedServices } from './constants/services';
+import { choosePaymentMenuPrompt } from './prompts/payment-methods/choosePaymentMenu.prompt';
 import { EncryptedDataSchema } from './schemas/encryptedData.schema';
-import { IUserData, UserDataSchema } from './schemas/userData.schema';
-import { ISupportedServices } from './types/generic';
+import { UserDataSchema } from './schemas/userData.schema';
+import { IUserData } from './types/releases';
 import { encryptData } from './utils/crypto';
 import { retrieveFromSelectedFilledForms } from './utils/random';
 
@@ -36,54 +39,101 @@ const startAt = Date.now();
 nodeCleanup((exitCode) =>
   console.log(
     exitCode
-      ? `${chalk.red.bold('error')} Command failed with exit code ${exitCode}.`
+      ? `${picocolors.red(picocolors.bold('error'))} Command failed with exit code ${exitCode}.`
       : `✨ Done in ${((Date.now() - startAt) / 1000).toFixed(2)}s.`,
   ),
 );
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class Sequence {
-  static #DATA: IUserData;
+  static #DEBUG_MODE =
+    process.argv.includes('--debug') && process.env.NODE_ENV === 'dev';
+
+  static #_STEP = 0;
+  static get #STEP() {
+    return this.#_STEP;
+  }
+
+  static set #STEP(n: number) {
+    if (this.#DEBUG_MODE) note(`Step ${n}`, '[DEBUG]');
+    this.#_STEP = n;
+  }
+
+  static #_DATA: IUserData;
+  static get #DATA(): IUserData {
+    return this.#_DATA;
+  }
+
+  static set #DATA(d: IUserData) {
+    if (this.#DEBUG_MODE) note(JSON.stringify(d, null, 2), '[DEBUG]');
+    this.#_DATA = d;
+  }
+
   static #PASS: string;
   static #BROWSER: Browser | null = null;
   static #CTX: BrowserContext | null = null;
-  static #CURRENT_WEBS = new Map<ISupportedServices, Page>();
+  /**
+   *  The first time an user fetchs to pages
+   */
+  static #CURRENT_WEBS = new Map<
+    ISupportedServices,
+    { page: Page; dashboard: string }
+  >();
+
+  static #FIRST_TIME: boolean = false;
 
   static {
     /**
-     * App auto evaluates static block and calls this private method.
+     * JS auto evaluates static block and calls this private method.
      */
     (async () => await this.#initialize())();
   }
 
   static async #initialize() {
+    intro(picocolors.inverse(` v ${pk.version} `));
+    if (this.#DEBUG_MODE) log.warning(picocolors.bgYellow('[DEBUG MODE]'));
+    note(
+      `Una herramienta moderna para pagar tus \ncuentas de forma segura y automatica.`,
+      'CLI-Pago_mis_servicios',
+    );
+    log.info(`Creado y mantenido por ${picocolors.blue(pk.author)}`);
+    log.warning(
+      `Si estas teniendo problemas usando la aplicación compartelo \nen: https://github.com/dapabe/CLI-Pago_mis_servicios`,
+    );
+
     await this.#checkFile();
     await this.#waitForUserMenuAction();
     await this.#checkSelectedServices();
+    await this.#retrieveBills();
+    await this.#waitForActionInBillSelection();
   }
 
   /**
    *  Ensures user's info file exists, if not recreates it \
    *  with default data and encrypts it with a hashed password.
+   *
+   *  @description Step 1
    */
   static async #checkFile(): Promise<void> {
+    this.#STEP = 1;
     try {
       const filePath = path.join(cwd(), generatedFileName);
       const file = await fs.readFile(filePath, 'utf-8');
 
-      const encryptedData = EncryptedDataSchema.safeParse(JSON.parse(file));
-      if (!encryptedData.success) {
+      const validJson = EncryptedDataSchema.getLastSchema().safeParse(
+        JSON.parse(file),
+      );
+      if (!validJson.success) {
         log.error(
-          `Algunos datos del archivo '${generatedFileName}' son invalidos, \n este archivo no debe ser modificado bajo ninguna circunstancia.`,
-        );
-        log.error(
-          JSON.stringify(encryptedData.error.flatten().fieldErrors, null, 2),
+          `Algunos datos del archivo '${generatedFileName}' son invalidos, \n este archivo no debe ser modificado bajo ninguna circunstancia. \n${JSON.stringify(validJson.error.flatten().fieldErrors, null, 2)}`,
         );
         exit(1);
       }
-      const { password, userData } = await decryptPrompt(encryptedData.data);
+      const { password, userData } = await decryptPrompt(validJson.data);
       this.#DATA = userData;
       this.#PASS = password;
+
+      this.#FIRST_TIME = !retrieveFromSelectedFilledForms(this.#DATA).length;
     } catch (_) {
       /**
        * Catch will only trigger if the file is not present
@@ -104,41 +154,60 @@ class Sequence {
       await fs.writeFile(
         filePath,
         JSON.stringify(
-          encryptData(password, getDefaultsForSchema(UserDataSchema)),
+          encryptData(
+            password,
+            getDefaultsForSchema(UserDataSchema.getLastSchema()),
+          ),
         ),
       );
     } catch (error) {
-      log.error(`Ha ocurrido un error inesperado: ${JSON.stringify(error)}`);
-      exit(1);
+      this.exceptionTermination(error);
     }
   }
 
-  static async #waitForUserMenuAction() {
-    const action = await selectMenuActionPrompt(this.#DATA);
-    switch (action) {
-      case 'next':
-        return await Promise.resolve();
-      case 'serviceFields':
-        await addServicePrompt(this.#DATA);
-        await this.#update();
-        return await this.#waitForUserMenuAction();
-      // case "paymentMethods":
-      // 	return await Promise.reject();
-      case 'password':
-        this.#PASS = await changePasswordPrompt(this.#PASS);
-        await this.#update();
-        return await this.#waitForUserMenuAction();
-      default:
-        outro(
-          picocolors.green(
-            'Gracias por utilizar esta herramienta, considera hacer un aporte :)',
-          ),
-        );
-        return exit(0);
+  /**
+   *
+   * @description Step 2
+   */
+  static async #waitForUserMenuAction(): Promise<void> {
+    this.#STEP = 2;
+    try {
+      const action = await selectMenuActionPrompt(this.#DATA, this.#FIRST_TIME);
+      switch (action) {
+        case 'next':
+          // if (this.#FIRST_TIME) return await this.#waitForUserMenuAction();
+          return await Promise.resolve();
+        case 'serviceFields':
+          await chooseSupportedServicePrompt(this.#DATA);
+          await this.#update();
+          return await this.#waitForUserMenuAction();
+        case 'paymentMethods':
+          await choosePaymentMenuPrompt(this.#DATA);
+          await this.#update();
+          return await this.#waitForUserMenuAction();
+        case 'password':
+          this.#PASS = await changePasswordPrompt(this.#PASS);
+          await this.#update();
+          return await this.#waitForUserMenuAction();
+        default:
+          outro(
+            picocolors.green(
+              '✨ Gracias por utilizar esta herramienta, considera hacer un aporte :)',
+            ),
+          );
+          return exit(0);
+      }
+    } catch (error) {
+      this.exceptionTermination(error);
     }
   }
 
+  /**
+   *
+   * @description Step 3
+   */
   static async #checkSelectedServices(): Promise<void> {
+    this.#STEP = 3;
     const currentSelection = retrieveFromSelectedFilledForms(this.#DATA);
     try {
       // const a = await spinner()
@@ -167,7 +236,7 @@ class Sequence {
         const page = await this.#isPageAvailable(selectedWeb);
         if (!page) break;
         await this.#navigateToDashboard(page, selectedWeb);
-        this.#CURRENT_WEBS.set(selectedWeb, page);
+        this.#CURRENT_WEBS.set(selectedWeb, { page, dashboard: page.url() });
       }
     } catch (error) {}
   }
@@ -223,35 +292,21 @@ class Sequence {
     }
   }
 
-  static async #waitForActionInContext(): Promise<void> {
-    try {
-      const answer = await navigateOnContextPrompt(
-        Object.keys(this.#CURRENT_WEBS) as ISupportedServices[],
-      );
-      switch (answer) {
-        case 'all':
-          return await this.#waitForActionInContext();
-        case 'exit':
-          return await this.#waitForUserMenuAction();
-        default:
-          const bill = await this.#lookForBill(answer);
-          if (bill) log.info(`Monto a pagar: ${bill}`);
-          else
-            log.error(
-              'No se ha podido encontrar el monto a pagar, \n nuestros metodos pueden estar desactualizados, \n pongase en contacto con el autor para mas información.',
-            );
-          return await this.#waitForActionInContext();
-      }
-    } catch (error) {
-      // await this.terminateProgram(1);
-    }
+  /**
+   *  @description Step 4
+   */
+  static async #retrieveBills() {
+    this.#STEP = 4;
   }
 
+  /**
+   *  Navigates to the most likely page to have last bill.
+   */
   static async #lookForBill(
     service: ISupportedServices,
   ): Promise<string | null> {
     try {
-      const page = this.#CURRENT_WEBS.get(service)!;
+      const { page } = this.#CURRENT_WEBS.get(service)!;
       const tempArr = Object.values(StepsToLastBill[service]!);
 
       for (let i = 0; i <= tempArr.length; ++i) {
@@ -262,14 +317,46 @@ class Sequence {
         }
         await element.click();
       }
-    } catch (error) {
+      return null;
+    } catch (_) {
+      console.log(_);
       return null;
     }
   }
 
+  /**
+   *
+   * @description Step 5 - Final
+   */
+  static async #waitForActionInBillSelection(): Promise<void> {
+    this.#STEP = 5;
+    // try {
+    //   const bills = this.#CURRENT_WEBS
+    //   const answer = await chooseBillToPayPrompt(
+    //     Object.keys(this.#CURRENT_WEBS) as ISupportedServices[],
+    //   );
+    //   switch (answer) {
+    //     case 'all':
+    //       return await this.#waitForActionInBillSelection();
+    //     case 'exit':
+    //       return await this.#waitForUserMenuAction();
+    //     default:
+    //       const bill = await this.#lookForBill(answer);
+    //       if (bill) log.info(`Monto a pagar: ${bill}`);
+    //       else
+    //         log.error(
+    //           'No se ha podido encontrar el monto a pagar, \n nuestros metodos pueden estar desactualizados, \n pongase en contacto con el autor para mas información.',
+    //         );
+    //       return await this.#waitForActionInBillSelection();
+    //   }
+    // } catch (error) {
+    //   this.exceptionTermination(error);
+    // }
+  }
+
   static async #navigateToPayForm(service: ISupportedServices) {
     try {
-      const page = this.#CURRENT_WEBS.get(service)!;
+      const { page } = this.#CURRENT_WEBS.get(service)!;
       for (const step of Object.values(StepsToPay[service]!)) {
         const element = page.locator(step);
         await element.waitFor();
@@ -291,8 +378,16 @@ class Sequence {
         filePath,
         JSON.stringify(encryptData(this.#PASS, this.#DATA)),
       );
+      log.info('Datos guardados correctamente.');
     } catch (error) {
-      log.error(JSON.stringify(error));
+      this.exceptionTermination(error);
     }
+  }
+
+  static exceptionTermination(e: unknown) {
+    cancel(
+      `Ha ocurrido un error inesperado en el [Step ${this.#STEP}]: \n${JSON.stringify(e, null, 2)}`,
+    );
+    exit(0);
   }
 }

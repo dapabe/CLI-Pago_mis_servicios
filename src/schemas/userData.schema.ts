@@ -1,16 +1,23 @@
 import { z } from 'zod';
-import { UserServicesFieldsSchema } from './enterpriseFields.schema.js';
+import { StoredPaymentMethodSchema } from './paymentMethod.schema.js';
+import { UserServiceFieldSchema } from './userServiceField.schema.js';
 
-/**
- *  TODO: fix this.
- *  On .parse, this schema should populate missing fields AND create missing ones too.
- */
-export const UserDataSchema = z.object({
-  /**
-   *	Login form fields
-   */
-  serviceFields: UserServicesFieldsSchema,
-  // paymentMethods:
-});
+export class UserDataSchema {
+  static '0.0.0' = z.object({
+    serviceFields: UserServiceFieldSchema['0.0.0'],
+  });
 
-export type IUserData = z.TypeOf<typeof UserDataSchema>;
+  static '0.0.1' = this['0.0.0'].merge(
+    z.object({
+      serviceFields: UserServiceFieldSchema.getLastSchema(),
+      paymentMethods: StoredPaymentMethodSchema.getLastSchema()
+        .optional()
+        .array()
+        .default([]),
+    }),
+  );
+
+  static getLastSchema() {
+    return this['0.0.1'];
+  }
+}

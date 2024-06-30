@@ -1,9 +1,9 @@
 {
   "name": "cli-pago_mis_servicios",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "Modern Node.js Command Line Tool to pay bills automatically.",
-  "author": "Daniel Patricio Becerra <dapadev@hotmail.com>",
+  "author": "Daniel Patricio Becerra",
   "license": "Apache-2.0",
   "bin": {
     "pago-servicios": "./dist/index.js"
@@ -16,9 +16,8 @@
   "scripts": {
     "prepare": "husky",
     "prepublishOnly": "npm run build",
-    "lint": "eslint . --fix --ext .js,.ts",
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsup --env.NODE_ENV prod",
+    "dev": "tsup --watch --env.NODE_ENV dev",
     "start": "node ./dist/index.js",
     "commitSemver": "changeset",
     "addToChangelog": "changeset version"
@@ -30,6 +29,7 @@
     "is-online": "10.0.0",
     "node-cleanup": "^2.1.2",
     "picocolors": "1.0.1",
+    "semver": "7.6.2",
     "typescript": "^5.5.2",
     "update-notifier": "^7.0.0",
     "zod": "3.23.8",
@@ -44,6 +44,7 @@
     "@types/crypto-js": "4.2.2",
     "@types/node": "^20.14.9",
     "@types/node-cleanup": "2.1.5",
+    "@types/semver": "7.5.8",
     "@types/update-notifier": "6.0.8",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.14.1",

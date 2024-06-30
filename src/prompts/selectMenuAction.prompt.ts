@@ -1,40 +1,50 @@
 import { SafeExitMessage } from '@/constants/random.js';
+import { IEditAction, IPromptAction } from '@/types/generic.js';
+import { IUserData } from '@/types/releases';
 import { cancel, isCancel, select } from '@clack/prompts';
+import picocolors from 'picocolors';
 import { exit } from 'process';
-import { IUserData } from '../schemas/userData.schema.js';
-//
-export async function selectMenuActionPrompt(userData: IUserData) {
-  const noServices = !Object.keys(userData.serviceFields).length;
 
-  const answer = await select({
+export async function selectMenuActionPrompt(
+  userData: IUserData,
+  firstTime: boolean,
+) {
+  const noPayMethods = !userData.paymentMethods.length;
+  const answer = await select<any, IPromptAction | IEditAction | 'password'>({
     message: '¿Qué quieres hacer?',
-    initialValue: 'next',
+    initialValue: firstTime ? 'serviceFields' : 'next',
     options: [
       {
-        name: 'Siguiente',
+        label: firstTime
+          ? picocolors.red('Ir a mis páginas')
+          : 'Ir a mis páginas',
         value: 'next',
-        description: 'Ver que si adeudo dinero de mis servicios seleccionados.',
-        disabled: noServices,
+        hint: firstTime
+          ? picocolors.yellow(
+              'Tienes que agregar al menos 1 cuenta para ver tu factura',
+            )
+          : 'Ver ultimas facturas o si adeudo dinero de mis servicios seleccionados.',
       },
       {
-        name: 'Mis datos',
+        label: 'Mis cuentas',
         value: 'serviceFields',
-        description:
-          'Modifica los campos de inicio de sesión de servicios que uses.',
+        hint: 'Añade, elimina o modifica tus cuentas.',
       },
       {
-        name: 'Cambiar contraseña',
+        label: noPayMethods
+          ? picocolors.yellow('Metodos de pago')
+          : 'Metodos de pago',
+        value: 'paymentMethods',
+        hint: `Añade, elimina o modifica tus metodos de pago. ${noPayMethods ? picocolors.yellow('[Necesitas al menos 1 para efectuar pagos]') : ''}`,
+      },
+      {
+        label: 'Cambiar contraseña',
         value: 'password',
       },
-      // {
-      // 	name: "Metodos de pago",
-      // 	value: "paymentMethods",
-      // 	description: "Modifica tus metodos de pago",
-      // },
       {
-        name: 'Salir',
+        label: 'Salir',
         value: 'exit',
-        description: 'Termina el programa.',
+        hint: 'Termina el programa.',
       },
     ],
   });

@@ -1,10 +1,13 @@
-import { z } from "zod";
-import { ZodSemverUnbranded } from "zod-semver";
+import { z } from 'zod';
 
-export const EncryptedDataSchema = z.object({
-	version: ZodSemverUnbranded,
-	salt: z.string(),
-	encryptedData: z.string(),
-});
+export class EncryptedDataSchema {
+  static '0.0.0' = z.object({
+    version: z.string(),
+    salt: z.string(),
+    encryptedData: z.string(),
+  });
 
-export type IEncryptedData = z.TypeOf<typeof EncryptedDataSchema>;
+  static getLastSchema() {
+    return this['0.0.0'];
+  }
+}

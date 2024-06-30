@@ -1,4 +1,6 @@
+/**
+ * @type {import("lint-staged").Config}
+ */
 export default {
-  '**/*.{ts,tsx,js,jsx}': ['eslint'],
-  '**/*.{js,ts,jsx,tsx,md,css}': ['prettier --check'],
+  'src/**/*.{js,ts,md}': ['prettier --debug-check'],
 };

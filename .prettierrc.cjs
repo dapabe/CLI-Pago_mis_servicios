@@ -1,5 +1,7 @@
-// 配置可参考 https://prettier.io/en/configuration.html
-module.exports = {
+/**
+ * @see https://prettier.io/docs/en/configuration.html
+ * @type {import("prettier").Config}
+ */ module.exports = {
   // Windows 用户和 macOS/Linux 用户的换行符不同会导致保存时触发 diff，这里遵循官方建议使用 'lf'
   endOfLine: 'lf',
 

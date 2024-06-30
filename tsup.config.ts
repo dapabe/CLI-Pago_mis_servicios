@@ -1,8 +1,8 @@
 import { defineConfig } from 'tsup';
 
-export default defineConfig({
+export default defineConfig((opts) => ({
   format: 'esm',
   clean: true,
   entry: ['src/index.ts'],
-  minify: true,
-});
+  minify: opts.env?.NODE_ENV === 'prod',
+}));

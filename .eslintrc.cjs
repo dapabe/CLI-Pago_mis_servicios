@@ -36,5 +36,6 @@ module.exports = defineConfig({
         asyncArrow: 'always',
       },
     ],
+    'no-case-declarations': 'off',
   },
 });

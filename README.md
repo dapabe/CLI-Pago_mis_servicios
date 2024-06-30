@@ -51,14 +51,14 @@ Si tienes sugerencias para hacer mas eficiente o mas seguro el código no dudes 
 
 ```bash
 pnpm install
-pnpm start
+pnpm dev
 ```
 
 o también pero más lento:
 
 ```bash
 npm install
-npx tsx src/index.ts
+npm run dev
 ```
 
 ### [Actualmente se soporta](#services)

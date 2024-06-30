@@ -1,7 +1,10 @@
 node_modules
 dist
-types
 .idea
 .DS_Store
 
-.info.json
+info.json
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

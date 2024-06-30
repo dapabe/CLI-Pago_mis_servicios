@@ -15,7 +15,7 @@ import picocolors from 'picocolors';
 import { getDefaultsForSchema } from 'zod-defaults';
 import 'zx/globals';
 import { LoginFields } from './constants/login-fields';
-import { generatedFileName } from './constants/random';
+import { AppPackage, generatedFileName } from './constants/random';
 import { ServicePages } from './constants/service-pages';
 import { StepsToLastBill } from './constants/steps-to-last-bill';
 import { StepsToLogin } from './constants/steps-to-login';
@@ -26,7 +26,6 @@ import { decryptPrompt } from './prompts/startup/decrypt.prompt';
 import { firstTimePrompt } from './prompts/startup/firstTime.prompt';
 import { chooseSupportedServicePrompt } from './prompts/supported-services/chooseSupportedService.prompt';
 
-import pk from '../package.json';
 import { ISupportedServices } from './constants/services';
 import { choosePaymentMenuPrompt } from './prompts/payment-methods/choosePaymentMenu.prompt';
 import { EncryptedDataSchema } from './schemas/encryptedData.schema';
@@ -90,13 +89,13 @@ class Sequence {
   }
 
   static async #initialize() {
-    intro(picocolors.inverse(` v ${pk.version} `));
+    intro(picocolors.inverse(` v ${AppPackage.version} `));
     if (this.#DEBUG_MODE) log.warning(picocolors.bgYellow('[DEBUG MODE]'));
     note(
       `Una herramienta moderna para pagar tus \ncuentas de forma segura y automatica.`,
       'CLI-Pago_mis_servicios',
     );
-    log.info(`Creado y mantenido por ${picocolors.blue(pk.author)}`);
+    log.info(`Creado y mantenido por ${picocolors.blue(AppPackage.author)}`);
     log.warning(
       `Si estas teniendo problemas usando la aplicación compartelo \nen: https://github.com/dapabe/CLI-Pago_mis_servicios`,
     );

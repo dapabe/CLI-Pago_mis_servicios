@@ -14,3 +14,5 @@ info.json
 # Everything but .example.env
 *.env
 !**/*example*.env
+
+vscode-**

@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-dev",
+      "type": "shell",
+      "command": ["pnpm tsup --env.NODE_ENV dev"],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "revealProblems": "onProblem"
+      }
+    }
+  ]
+}

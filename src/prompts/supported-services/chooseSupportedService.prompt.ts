@@ -26,21 +26,22 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
       return picocolors.green(service);
     return picocolors.yellow(service);
   };
+  console.log(SupportedServices)
 
   const chosenService = await select<any, 'exit' | ISupportedServices>({
-    message: '¿Que servicio usaras?',
+    message: '¿Que servicio editaras?',
     initialValue: 'exit',
     options: [
       {
         label: 'Volver',
         value: 'exit',
       },
-      ...Object.values(SupportedServices).map((service) => ({
-        label: completionStatus(service),
+      ...SupportedServices._def.values.map((service) => ({
+        label: completedFields(service as ISupportedServices),
         value: service,
         hint: !userData.serviceFields[service]
           ? ''
-          : `${completedFields(service)}/${RequiredServiceFieldAmount} campos completados`,
+          : `${completedFields(service as ISupportedServices)}/${RequiredServiceFieldAmount} campos completados`,
       })),
     ],
   });

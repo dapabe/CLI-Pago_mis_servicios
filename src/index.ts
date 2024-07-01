@@ -132,7 +132,8 @@ class Sequence {
       this.#DATA = userData;
       this.#PASS = password;
 
-      this.#FIRST_TIME = !retrieveFromSelectedFilledForms(this.#DATA).length;
+      console.log(retrieveFromSelectedFilledForms(this.#DATA))
+      this.#FIRST_TIME = true
     } catch (_) {
       /**
        * Catch will only trigger if the file is not present
@@ -174,7 +175,7 @@ class Sequence {
       const action = await selectMenuActionPrompt(this.#DATA, this.#FIRST_TIME);
       switch (action) {
         case 'next':
-          // if (this.#FIRST_TIME) return await this.#waitForUserMenuAction();
+          if (this.#FIRST_TIME) return await this.#waitForUserMenuAction();
           return await Promise.resolve();
         case 'serviceFields':
           await chooseSupportedServicePrompt(this.#DATA);
@@ -207,7 +208,7 @@ class Sequence {
    */
   static async #checkSelectedServices(): Promise<void> {
     this.#STEP = 3;
-    const currentSelection = retrieveFromSelectedFilledForms(this.#DATA);
+    const currentSelection = retrieveFromSelectedFilledForms(this.#DATA).map(x=> x.service);
     try {
       // const a = await spinner()
       const connection = await isOnline();

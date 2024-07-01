@@ -1,14 +1,12 @@
 import { ISupportedServices } from '@/constants/services';
 import { IUserData } from '@/types/releases';
 
-export function retrieveFromSelectedFilledForms(
-  userData: IUserData,
-){
+export function retrieveFromSelectedFilledForms(userData: IUserData) {
   return (
     Object.entries(userData.serviceFields)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .filter(([_, fields]) => Object.values(fields).every(Boolean))
-      .map((x) => ({service:x[0] as ISupportedServices, fields:x[1]}))
+      .map((x) => ({ service: x[0] as ISupportedServices, fields: x[1] }))
   );
 }
 

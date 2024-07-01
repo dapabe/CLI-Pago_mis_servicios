@@ -26,7 +26,6 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
       return picocolors.green(service);
     return picocolors.yellow(service);
   };
-  console.log(SupportedServices)
 
   const chosenService = await select<any, 'exit' | ISupportedServices>({
     message: '¿Que servicio editaras?',
@@ -36,8 +35,8 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
         label: 'Volver',
         value: 'exit',
       },
-      ...SupportedServices._def.values.map((service) => ({
-        label: completedFields(service as ISupportedServices),
+      SupportedServices._def.values.map((service) => ({
+        label: completionStatus(service as ISupportedServices),
         value: service,
         hint: !userData.serviceFields[service]
           ? ''

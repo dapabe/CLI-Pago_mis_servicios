@@ -1,7 +1,7 @@
 import { ServiceLoginFieldsSchema } from '@/schemas/serviceLoginField.schema';
-import pkg from "package.json";
+import pkg from 'package.json';
 
-export const AppPackage = pkg
+export const AppPackage = pkg;
 
 export const generatedFileName = 'info.json' as const;
 

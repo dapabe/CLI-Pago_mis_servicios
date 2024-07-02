@@ -54,7 +54,7 @@ export class ZodSchemaManager<LastVer extends ZodSemverUnbranded, Instance exten
           const schVersion = this.versions.get(version);
           if (schVersion) {
             log.info("Se ha detectado una versión antigua, actualizado..")
-            currentData = schVersion.safeParse(currentData)
+            currentData = schVersion.safeParse(data)
             currentVersion = version as any;
           }
         }
@@ -71,7 +71,7 @@ export class ZodSchemaManager<LastVer extends ZodSemverUnbranded, Instance exten
             const schVersion = this.versions.get(version);
             if (schVersion) {
               log.info("La versión de tus datos está mas actualizada a la aceptada, actualizado..")
-              currentData = schVersion.safeParse(currentData);
+              currentData = schVersion.safeParse(data);
               currentVersion = version as any;
             }
           }

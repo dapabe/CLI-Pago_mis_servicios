@@ -1,7 +1,7 @@
 import { SafeExitMessage, generatedFileName } from '@/constants/random.js';
 import { IEncryptedData } from '@/schemas/encryptedData.schema';
 import { IUserData, UserDataManager } from '@/schemas/userData.schema';
-import { decryptData } from '@/utils/crypto.js';
+import { decryptData, encryptData } from '@/utils/crypto.js';
 import { cancel, isCancel, password } from '@clack/prompts';
 import pkg from "package.json";
 import { exit } from 'process';
@@ -29,10 +29,9 @@ export async function decryptPrompt(
   if (!decryptedData) return await decryptPrompt(encryptedData, filePath,++attempt);
 
   const parsedData = UserDataManager.migrate(decryptedData,encryptedData.version as any, pkg.version as any);
-debugger
+
   if(encryptedData.version !== pkg.version){
-    console.log(parsedData.data)
-    // await fs.writeFile(filePath,JSON.stringify(encryptData(answer,parsedData.data!)),"utf-8")
+    await fs.writeFile(filePath,JSON.stringify(encryptData(answer,parsedData.data!)),"utf-8")
   }
 
   if (!parsedData.success) {

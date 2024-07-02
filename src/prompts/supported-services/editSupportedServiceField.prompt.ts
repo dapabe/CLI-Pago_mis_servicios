@@ -1,6 +1,6 @@
 import { SafeExitMessage } from '@/constants/random';
-import { ServiceLoginFieldsSchema } from '@/schemas/serviceLoginField.schema';
-import { IServiceLoginFields, IUserData } from '@/types/releases';
+import { IServiceLoginFields, ServiceLoginFieldsManager } from '@/schemas/serviceLoginField.schema';
+import { IUserData } from '@/schemas/userData.schema';
 import { TranslatedInput } from '@/utils/translation';
 import { cancel, isCancel, password, select } from '@clack/prompts';
 import picocolors from 'picocolors';
@@ -11,7 +11,7 @@ export async function editSupportedServiceField(
   field: keyof IServiceLoginFields,
 ) {
   const translated = picocolors.underline(TranslatedInput[field]);
-  if (field === 'payAlias') {
+  if (field === 'aliasRef') {
     const answer = await select<any, string>({
       message: `Elije un ${translated} que hayas creado`,
       options: [
@@ -36,7 +36,7 @@ export async function editSupportedServiceField(
       message: `Estas modificando la información de ${translated}`,
       mask: '',
       validate: (x) =>
-        ServiceLoginFieldsSchema.getLastSchema().shape[field].safeParse(x).error
+        ServiceLoginFieldsManager.getLastSchema().shape[field].safeParse(x).error
           ?.errors[0].message,
     });
     if (isCancel(answer)) {

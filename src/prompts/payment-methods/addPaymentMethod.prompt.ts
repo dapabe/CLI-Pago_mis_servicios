@@ -1,9 +1,11 @@
 import { SafeExitMessage } from '@/constants/random';
-import { StoredPaymentMethodSchema } from '@/schemas/paymentMethod.schema';
-import { IStoredPaymentMethod, IUserData } from '@/types/releases';
+import { IStoredPaymentMethod, StoredPaymentMethodManager } from '@/schemas/paymentMethod.schema';
 
-import { ISupportedServices } from '@/types/generic';
+import { CardBrand, CardType } from '@/constants/card';
+import { ISupportedServices } from '@/constants/services';
+import { IUserData } from '@/schemas/userData.schema';
 import * as prompt from '@clack/prompts';
+import { exit } from 'process';
 import { addPaymentAliasPrompt } from './addPaymentAlias.prompt';
 
 export async function addPaymentMethodPrompt(
@@ -12,22 +14,45 @@ export async function addPaymentMethodPrompt(
 ): Promise<void> {
   const group = await prompt.group(
     {
+      cardType:()=> prompt.select({
+        message:"Tipo de targeta",
+        initialValue: payMethod?.cardType ?? StoredPaymentMethodManager.getLastSchema().shape.cardType._def.defaultValue(),
+        options:Object.values(CardType.enum).map(x=>({
+          label: x,
+          value: x,
+
+        }))
+      }),
+      cardBrand:()=> prompt.select({
+        message:"Marca de targeta (Opcional)",
+        initialValue: payMethod?.cardBrand ?? null,
+        options: [
+          {
+            label:"Ninguno/a",
+            value:null,
+          },
+          ...Object.values(CardBrand.enum).map(x=>({
+            label:x,
+            value:x,
+          }))
+        ]
+      }),
       fullName: () =>
         prompt.text({
           message: 'Nombre completo',
           initialValue: payMethod?.fullName ?? '',
           validate: (x) =>
-            StoredPaymentMethodSchema.getLastSchema().shape.fullName.safeParse(
+            StoredPaymentMethodManager.getLastSchema().shape.fullName.safeParse(
               x,
             ).error?.errors[0].message,
         }),
       frontNumber: () =>
         prompt.text({
-          message: 'Número de la targeta',
+          message: 'Número de la targeta (Sin espacios)',
           placeholder: '0000 0000 0000 0000',
           initialValue: payMethod?.frontNumber ?? '',
           validate: (x) =>
-            StoredPaymentMethodSchema.getLastSchema().shape.frontNumber.safeParse(
+            StoredPaymentMethodManager.getLastSchema().shape.frontNumber.safeParse(
               x,
             ).error?.errors[0].message,
         }),
@@ -37,24 +62,25 @@ export async function addPaymentMethodPrompt(
           placeholder: '01/29',
           initialValue: payMethod?.expireDate ?? '',
           validate: (x) =>
-            StoredPaymentMethodSchema.getLastSchema().shape.expireDate.safeParse(
+            StoredPaymentMethodManager.getLastSchema().shape.expireDate.safeParse(
               x,
             ).error?.errors[0].message,
         }),
       backNumber: () =>
         prompt.text({
-          message: 'Clave de seguridad (CCV)',
+          message: 'Clave de seguridad (CVV)',
           placeholder: '000',
           initialValue: payMethod?.backNumber ?? '',
           validate: (x) =>
-            StoredPaymentMethodSchema.getLastSchema().shape.backNumber.safeParse(
+            StoredPaymentMethodManager.getLastSchema().shape.backNumber.safeParse(
               x,
             ).error?.errors[0].message,
         }),
     },
     {
-      async onCancel() {
-        prompt.log.warning(SafeExitMessage);
+      onCancel() {
+        prompt.cancel(SafeExitMessage);
+        exit(0)
       },
     },
   );
@@ -63,23 +89,22 @@ export async function addPaymentMethodPrompt(
   //  If payMethod exists then is modifying info, else adding info.
   if (payMethod) {
     const toReplace = userData.paymentMethods.find(
-      (x) => x!.payAlias === payMethod.payAlias,
+      (x) => x!.uuid === payMethod.uuid,
     )!;
     userData.paymentMethods = [
       ...userData.paymentMethods.filter(
-        (x) => x!.payAlias !== payMethod.payAlias,
+        (x) => x!.uuid !== payMethod.uuid,
       ),
       { ...toReplace, payAlias },
     ];
 
     //  Execute changes in services
-
     for (const service of Object.keys(
       userData.serviceFields,
-    ) as ISupportedServices[]) {
-      userData.serviceFields[service]!.payAlias = payAlias;
+    )) {
+      userData.serviceFields[service as ISupportedServices]!.aliasRef = payMethod.uuid!;
     }
   } else {
-    userData.paymentMethods.push({ ...group, payAlias });
+    userData.paymentMethods.push({ ...group, payAlias,uuid: crypto.randomUUID() });
   }
 }

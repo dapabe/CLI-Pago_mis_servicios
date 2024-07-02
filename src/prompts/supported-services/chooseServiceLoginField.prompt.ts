@@ -1,6 +1,7 @@
 import { SafeExitMessage } from '@/constants/random.js';
 import { ISupportedServices } from '@/constants/services';
-import { IServiceLoginFields, IUserData } from '@/types/releases.js';
+import { IServiceLoginFields } from '@/schemas/serviceLoginField.schema';
+import { IUserData } from '@/schemas/userData.schema';
 import { TranslatedInput } from '@/utils/translation';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
@@ -13,7 +14,7 @@ export async function chooseServiceLoginFieldPrompt(
 ) {
   const noPayMethods = !userData.paymentMethods.length;
   const hintStatus = (field: keyof IServiceLoginFields) => {
-    if (field === 'payAlias')
+    if (field === 'aliasRef')
       return (
         noPayMethods &&
         picocolors.yellow('Debes añadir un metodo de pago primero.')
@@ -23,7 +24,7 @@ export async function chooseServiceLoginFieldPrompt(
     field: keyof IServiceLoginFields,
     value: string | null,
   ) => {
-    if (field === 'payAlias')
+    if (field === 'aliasRef')
       return noPayMethods
         ? picocolors.red(TranslatedInput[field])
         : picocolors.green(TranslatedInput[field]);
@@ -52,7 +53,7 @@ export async function chooseServiceLoginFieldPrompt(
     exit(0);
   }
 
-  if (noPayMethods && answer === 'payAlias')
+  if (noPayMethods && answer === 'aliasRef')
     return await chooseServiceLoginFieldPrompt(userData, service, answer);
   return answer;
 }

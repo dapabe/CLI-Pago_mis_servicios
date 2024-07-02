@@ -1,5 +1,7 @@
-export const TranslatedInput = {
-  payAlias: 'Metodo de pago',
+
+
+export const TranslatedInput= {
+  aliasRef: 'Metodo de pago',
   backNumber: 'Código de seguridad (CVV)',
   expireDate: 'Fecha de expiración',
   frontNumber: 'Número de tarjeta',

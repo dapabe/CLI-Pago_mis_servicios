@@ -1,5 +1,5 @@
 import { SafeExitMessage } from '@/constants/random';
-import { StoredPaymentMethodSchema } from '@/schemas/paymentMethod.schema';
+import { StoredPaymentMethodManager } from '@/schemas/paymentMethod.schema';
 import { cancel, confirm, isCancel, text } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
@@ -9,7 +9,7 @@ export async function addPaymentAliasPrompt(alias?: string): Promise<string> {
     message: `Escribe un ${picocolors.bold(picocolors.underline('Alias'))} unico para esta tarjeta.`,
     initialValue: alias ?? '',
     validate: (x) =>
-      StoredPaymentMethodSchema.getLastSchema().shape.payAlias.safeParse(x)
+      StoredPaymentMethodManager.getLastSchema().shape.payAlias.safeParse(x)
         .error?.errors[0].message,
   });
   if (isCancel(answer)) {

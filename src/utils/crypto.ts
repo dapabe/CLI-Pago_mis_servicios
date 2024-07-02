@@ -1,9 +1,10 @@
-import { IEncryptedData, IUserData } from '@/types/releases';
+import { IEncryptedData } from '@/schemas/encryptedData.schema';
+import { IUserData } from '@/schemas/userData.schema';
 import CryptoJS from 'crypto-js';
 import nCrypto from 'node:crypto';
 import pkg from '../../package.json';
 
-export function encryptData(password: string, data: any): IEncryptedData {
+export function encryptData(password: string, data: object): IEncryptedData {
   const salt = CryptoJS.lib.WordArray.random(16).toString();
   const derivedKey = createDerivedKey(password, salt);
 

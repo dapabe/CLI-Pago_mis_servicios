@@ -1,6 +1,6 @@
 import { SafeExitMessage } from '@/constants/random.js';
+import { IUserData } from '@/schemas/userData.schema';
 import { IEditAction, IPromptAction } from '@/types/generic.js';
-import { IUserData } from '@/types/releases';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';

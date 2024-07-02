@@ -3,8 +3,8 @@ import {
   SafeExitMessage,
 } from '@/constants/random.js';
 import { ISupportedServices, SupportedServices } from '@/constants/services.js';
-import { ServiceLoginFieldsSchema } from '@/schemas/serviceLoginField.schema.js';
-import { IUserData } from '@/types/releases.js';
+import { ServiceLoginFieldsManager } from '@/schemas/serviceLoginField.schema.js';
+import { IUserData } from '@/schemas/userData.schema.js';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
@@ -35,12 +35,12 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
         label: 'Volver',
         value: 'exit',
       },
-      SupportedServices._def.values.map((service) => ({
-        label: completionStatus(service as ISupportedServices),
+      ...Object.values(SupportedServices.enum).map((service) => ({
+        label: completionStatus(service),
         value: service,
         hint: !userData.serviceFields[service]
           ? ''
-          : `${completedFields(service as ISupportedServices)}/${RequiredServiceFieldAmount} campos completados`,
+          : `${completedFields(service)}/${RequiredServiceFieldAmount} campos completados`,
       })),
     ],
   });
@@ -53,9 +53,9 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 
   //  In case the field does not exists it has to be created for the next function
   //  or else will crash, because it depends on `chosenService` has properties.
-  //  on exit instances just clear the data. todo: 2nd parameter default value for this case
+  //  on exit instances just clear the data.
   userData.serviceFields[chosenService] ||= getDefaultsForSchema(
-    ServiceLoginFieldsSchema.getLastSchema(),
+    ServiceLoginFieldsManager.getLastSchema(),
   );
 
   const serviceFieldData = await chooseServiceLoginFieldPrompt(
@@ -71,13 +71,14 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
   const fieldData = await editSupportedServiceField(userData, serviceFieldData);
   if (
     fieldData === 'exit' ||
-    (serviceFieldData === 'payAlias' && !userData.paymentMethods.length)
+    (serviceFieldData === 'aliasRef' && !userData.paymentMethods.length)
   ) {
     clearOnExit(userData);
     return await chooseSupportedServicePrompt(userData);
   }
 
   userData.serviceFields[chosenService]![serviceFieldData] = fieldData;
+  return await chooseSupportedServicePrompt(userData)
 }
 
 function clearOnExit(userData: IUserData) {

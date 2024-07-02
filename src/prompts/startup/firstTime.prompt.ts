@@ -5,7 +5,7 @@ import { exit } from 'process';
 export async function firstTimePrompt(): Promise<string> {
   const a = await password({
     message:
-      'Crea una contraseña con la que podras acceder a tu datos personales, recuerda guardarla bien',
+      'Crea una contraseña con la que podras acceder a tu datos personales, guardala bien.',
     mask: '',
   });
   if (isCancel(a)) {

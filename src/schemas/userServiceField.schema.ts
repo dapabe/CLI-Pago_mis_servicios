@@ -1,34 +1,39 @@
-import { SupportedServices } from '@/constants/services';
+import { ISupportedServices, SupportedServices } from '@/constants/services';
+import { IValidVersions, SchemaUtilities, ZodSchemaManager } from '@/utils/ZodSchemaManager';
 import { z } from 'zod';
-import { ServiceLoginFieldsSchema } from './serviceLoginField.schema';
+import { ServiceLoginFieldsManager } from './serviceLoginField.schema';
+
+
+function createDynamicServiceField(){
+  const dynamic: Record<ISupportedServices,z.ZodOptionalType<ReturnType<typeof ServiceLoginFieldsManager.getLastSchema>>> = {} as any
+
+  for (const service of Object.values(SupportedServices.enum)) {
+    dynamic[service] =ServiceLoginFieldsManager.getLastSchema().optional()
+
+  }
+  return z.object(dynamic)
+}
+
 /**
- * 	Find a way to create this object exponentially as `SupportedServices` \
- * 	grows that is type safe and scalable.
+ * User sensitive information data structure.
  */
-export class UserServiceFieldSchema {
-  static '0.0.0' = z
-    .object({
-      [SupportedServices.enum.Aysa]:
-        ServiceLoginFieldsSchema['0.0.0'].optional(),
-      [SupportedServices.enum.Edesur]:
-        ServiceLoginFieldsSchema['0.0.0'].optional(),
-      [SupportedServices.enum.Telecentro]:
-        ServiceLoginFieldsSchema['0.0.0'].optional(),
-    })
-    .default({});
+export class UserServiceSchema  extends ZodSchemaManager<"0.0.0",typeof UserServiceSchema> implements SchemaUtilities {
+  static "0.0.0" = createDynamicServiceField()
 
-  static '0.0.1' = z
-    .object({
-      [SupportedServices.enum.Aysa]:
-        ServiceLoginFieldsSchema.getLastSchema().optional(),
-      [SupportedServices.enum.Edesur]:
-        ServiceLoginFieldsSchema.getLastSchema().optional(),
-      [SupportedServices.enum.Telecentro]:
-        ServiceLoginFieldsSchema.getLastSchema().optional(),
-    })
-    .default({});
+  constructor(){
+    super(UserServiceSchema)
+  }
 
-  static getLastSchema() {
-    return this['0.0.1'];
+  getLastSchema(){
+    return UserServiceSchema[this.getLastVersion()]
   }
 }
+export const UserServiceManager = new UserServiceSchema()
+
+type T = typeof UserServiceSchema
+
+export type IUserService<
+  V extends IValidVersions<
+    T
+  > = "0.0.0",
+> = z.TypeOf<(T)[V]>;

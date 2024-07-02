@@ -1,6 +1,7 @@
 import { SafeExitMessage } from '@/constants/random';
-import { ISupportedServices } from '@/types/generic';
-import { IUserData } from '@/types/releases';
+
+import { ISupportedServices } from '@/constants/services';
+import { IUserData } from '@/schemas/userData.schema';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
@@ -49,13 +50,13 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
     const results = await deletePaymentMethodPrompt(aliases);
     if (results) {
       userData.paymentMethods = userData.paymentMethods.filter(
-        (x) => !results.includes(x!.payAlias),
+        (x) => !results.includes(x!.uuid),
       );
       //  Delete references in services
       const refs = Object.entries(userData.serviceFields)
-        .filter((x) => !results.includes(x[1].payAlias!))
+        .filter((x) => !results.includes(x[1].aliasRef!))
         .map(([service, field]) => ({
-          [service]: { ...field, payAlias: '' },
+          [service]: { ...field, aliasRef: null },
         }));
       console.log(refs);
 

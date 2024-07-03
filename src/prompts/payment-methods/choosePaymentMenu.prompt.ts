@@ -59,7 +59,7 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
       //  Delete references in services
       const refs: IUserService = {}
       //  Filter services with no references
-      for (const [service, fields] of Object.entries(userData.serviceFields).filter(x=> x[1].aliasRef !== null)) {
+      for (const [service, fields] of Object.entries(userData.serviceFields)) {
         if(results.includes(fields.aliasRef!)) {
           refs[service] = {...fields, aliasRef: null}
         } else {

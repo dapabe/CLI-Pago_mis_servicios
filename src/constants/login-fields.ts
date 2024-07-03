@@ -1,4 +1,3 @@
-import { Page } from '@playwright/test';
 import { ISupportedServices, SupportedServices } from './services';
 
 type Opts = {
@@ -27,29 +26,13 @@ export const LoginFields: Record<ISupportedServices,Opts> = {
     username: '.show-smart-phone input[type=email]',
     password: 'input[type=password]',
     submit: 'form button',
-    loginEndpoint: ""
+    loginEndpoint: "https://ed.edesur.com.ar/api/Usuario/Login"
   },
   [SupportedServices.enum.Telecentro]: {
     username: 'input[type=email]',
     password: 'input[type=password]',
     submit: 'button[type=submit]',
-    loginEndpoint: "",
+    loginEndpoint: "https://acceso.web.aysa.com.ar/saml2/idp/sso/acceso.web.aysa.com.ar",
+    // https://authn.br1.hana.ondemand.com/saml2/sp/acs/mfy5t4t2rj/mfy5t4t2rj
   },
 } as const;
-
-async function checkAysa(page:Page){
-  const id = "#globalMessages"
-  const box = page.locator(id)
-  box.waitFor()
-  const els = await box.all()
-  console.log(els)
-  return Boolean(els.length)
-}
-
-async function checkEdesur(page:Page){
-  return false
-}
-
-async function checkTelecentro(page:Page) {
-  return false
-}

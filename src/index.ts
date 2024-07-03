@@ -17,7 +17,7 @@ import "zx/globals";
 import { LoginFields } from "./constants/login-fields";
 import { AppPackage, generatedFileName } from "./constants/random";
 import { ServicePages } from "./constants/service-pages";
-import { StepsToLastBill } from "./constants/steps-to-last-bill";
+import { BillData, StepsToLastBill } from "./constants/steps-to-last-bill";
 import { StepsToLogin } from "./constants/steps-to-login";
 import { StepsToPay } from "./constants/steps-to-pay";
 import { selectMenuActionPrompt } from "./prompts/selectMenuAction.prompt";
@@ -28,11 +28,12 @@ import { chooseSupportedServicePrompt } from "./prompts/supported-services/choos
 
 import { ServiceDashboards } from "./constants/service-dashboards";
 import type { ISupportedServices } from "./constants/services";
+import { chooseBillToPayPrompt } from "./prompts/bill-context/chooseBillToPay.prompt";
 import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import { IUserData, UserDataManager } from "./schemas/userData.schema";
 import { encryptData } from "./utils/crypto";
-import { getServicesWithFilledLogins } from "./utils/random";
+import { getServicesWithAllFilledLogins, getServicesWithFilledLogins } from "./utils/random";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -118,7 +119,7 @@ class Sequence {
 			this.#DATA = userData;
 			this.#PASS = password;
 
-			this.#FIRST_TIME = !Boolean(getServicesWithFilledLogins(this.#DATA).length);
+			this.#FIRST_TIME = !Boolean(getServicesWithAllFilledLogins(this.#DATA).length);
 
       await this.#waitForUserMenuAction()
 		} catch (_) {
@@ -231,10 +232,11 @@ class Sequence {
 			this.#CTX = await this.#BROWSER.newContext();
 
       log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`}`)
-			for await (const {service}of currentSelection) {
+			for await (const { service } of currentSelection) {
 				const page = await this.#isPageAvailable(service);
 				if (!page)  break
         const badResponse = await this.#navigateToDashboard(page, service);
+        console.log({badResponse})
         if(!badResponse) break
         this.#CURRENT_WEBS.set(service, { page, dashboard: ServiceDashboards[service] });
 			}
@@ -292,6 +294,7 @@ class Sequence {
 			await submit.waitFor();
 			await submit.click();
 
+      this.#DEBUG_MODE && log.message(`${service}: ${field.loginEndpoint}`)
       const res = await page.waitForResponse(field.loginEndpoint)
       if(res.ok()) return true
 
@@ -312,13 +315,15 @@ class Sequence {
 		this.#STEP = 4;
     try {
       log.info("Buscando ultima factura..")
-      const bills = new Map<ISupportedServices,string|null>()
+      const bills = new Map<ISupportedServices,BillData>()
       for await (const [service, {dashboard,page}] of this.#CURRENT_WEBS) {
-        const { bill } = await StepsToLastBill[service](page)
-        bills.set(service, bill)
+        const data = await StepsToLastBill[service](page)
+        bills.set(service, data)
+
+        await page.goto(dashboard)
       }
 
-
+      await this.#waitForActionInBillSelection(bills)
     } catch (error) {
       return this.#exceptionTermination(error)
     }
@@ -329,45 +334,30 @@ class Sequence {
 	 *
 	 * @description Step 5 - Final
 	 */
-	// static async #waitForActionInBillSelection(): Promise<void> {
-	// 	this.#STEP = 5;
-	// 	// try {
-    // const answer = await chooseBillToPayPrompt(
-    //   [...this.#CURRENT_WEBS].map(x=> ({}))
-    // );
-    // switch (answer) {
-    //   case 'all':
-    //     return await this.#waitForActionInBillSelection();
-    //   case 'exit':
-    //     return await this.#waitForUserMenuAction();
-    //   default:
-    //     const bill = await this.#lookForBill(answer);
-    //     if (bill) log.info(`Monto a pagar: ${bill}`);
-    //     else
-    //       log.error(
-    //         'No se ha podido encontrar el monto a pagar, \n nuestros metodos pueden estar desactualizados, \n pongase en contacto con el autor para mas información.',
-    //       );
-    //     return await this.#waitForActionInBillSelection();
-    // }
-	// 	// } catch (error) {
-	// 	//   this.exceptionTermination(error);
-	// 	// }
-	// }
-
-	static async #navigateToPayForm(service: ISupportedServices) {
+	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices,BillData>): Promise<void> {
+		this.#STEP = 5;
 		try {
-			const { page } = this.#CURRENT_WEBS.get(service)!;
-			for (const step of Object.values(StepsToPay[service]!)) {
-				const element = page!.locator(step);
-				await element.waitFor();
-				await element.click();
-			}
+    const answer = await chooseBillToPayPrompt(
+      [...currentBills].map(([service, bill])=>({service, ...bill}))
+    );
+    switch (answer) {
+      case 'all':
+        return await this.#waitForActionInBillSelection(currentBills);
+      case 'exit':
+        return await this.#waitForUserMenuAction();
+      default:
+        log.info(`Pagando ${answer}..`)
+        await StepsToPay[answer](this.#CURRENT_WEBS.get(answer)!.page)
+        log.success(`¡${answer} pagado con exito!`)
+        return await this.#waitForActionInBillSelection(currentBills);
+      }
 		} catch (error) {
-			log.error(JSON.stringify(error));
+		  this.#exceptionTermination(error);
 		}
 	}
 
 	//  Utilities section
+
 	/**
 	 *  Saves current data.
 	 */

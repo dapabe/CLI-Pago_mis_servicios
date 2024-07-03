@@ -4,7 +4,7 @@ import {
   chromium,
   type Browser,
   type BrowserContext,
-  type Page,
+  type Page
 } from "@playwright/test";
 import isOnline from "is-online";
 import nodeCleanup from "node-cleanup";
@@ -26,12 +26,13 @@ import { decryptPrompt } from "./prompts/startup/decrypt.prompt";
 import { firstTimePrompt } from "./prompts/startup/firstTime.prompt";
 import { chooseSupportedServicePrompt } from "./prompts/supported-services/chooseSupportedService.prompt";
 
+import { ServiceDashboards } from "./constants/service-dashboards";
 import type { ISupportedServices } from "./constants/services";
 import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import { IUserData, UserDataManager } from "./schemas/userData.schema";
 import { encryptData } from "./utils/crypto";
-import { hastAtLeastOneLoginFilled, retrieveFromSelectedFilledForms } from "./utils/random";
+import { getServicesWithFilledLogins } from "./utils/random";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -93,10 +94,6 @@ class Sequence {
 		);
 
 		await this.#checkFile();
-		await this.#waitForUserMenuAction();
-		await this.#checkSelectedServices();
-		await this.#retrieveBills();
-		await this.#waitForActionInBillSelection();
 	}
 
 	/**
@@ -121,7 +118,9 @@ class Sequence {
 			this.#DATA = userData;
 			this.#PASS = password;
 
-			this.#FIRST_TIME = !hastAtLeastOneLoginFilled(this.#DATA);
+			this.#FIRST_TIME = !Boolean(getServicesWithFilledLogins(this.#DATA).length);
+
+      await this.#waitForUserMenuAction()
 		} catch (_) {
 			/**
 			 * Catch will only trigger if the file is not present
@@ -164,7 +163,7 @@ class Sequence {
 			switch (action) {
 				case "next":
 					if (this.#FIRST_TIME) return await this.#waitForUserMenuAction();
-					return await Promise.resolve();
+					return await this.#checkSelectedServices();
 				case "serviceFields":
 					await chooseSupportedServicePrompt(this.#DATA);
 					await this.#update();
@@ -177,9 +176,12 @@ class Sequence {
 					this.#PASS = await changePasswordPrompt(this.#PASS);
 					await this.#update();
 					return await this.#waitForUserMenuAction();
+        case "secureMode":
+          this.#DATA.secureMode = !this.#DATA.secureMode;
+          await this.#update()
+          return await this.#waitForUserMenuAction()
 				default:
           return this.#outroTermination()
-
 			}
 		} catch (error) {
 			this.#exceptionTermination(error);
@@ -192,39 +194,61 @@ class Sequence {
 	 */
 	static async #checkSelectedServices(): Promise<void> {
 		this.#STEP = 3;
-		const currentSelection = retrieveFromSelectedFilledForms(this.#DATA).map(
-			(x) => x.service,
-		);
+		const currentSelection = getServicesWithFilledLogins(this.#DATA)
 		try {
-			// const a = await spinner()
-			const connection = await isOnline();
-			if (!connection) return await this.#waitForUserMenuAction();
-			// if (!currentSelection.length)
-			//   await Promise.reject();
 
-			const previousLoop = currentSelection.map((x) => ({
-				[x]: this.#CURRENT_WEBS.has(x),
-			}));
-			console.log(previousLoop);
+			const connection = await isOnline();
+			if (!connection) {
+        log.error("Sin internet, volviendo al menú..")
+        setTimeout(async()=> await this.#waitForUserMenuAction(),2000)
+        return
+      }
+
+			if (!currentSelection.length) {
+        log.error("Sin servicios al que navegar, volviendo al menú..")
+        setTimeout(async()=> await this.#waitForUserMenuAction(), 2000);
+        return
+      }
+
+
 			/**
-			 * 	When user navigates to selectEditAction from
-			 * 	waitForUserActionOnContext this should resolve
-			 * 	only when currentSelection is equal to CURRENT_WEBS
-			 * 	else should navigate to the new selected webs.
-			 */
-			const isEqualToPreviusLoop = previousLoop.every(Boolean);
-			if (isEqualToPreviusLoop || this.#BROWSER) Promise.resolve();
+       * 	When user navigates to [Step 2] from
+			 * 	[Step 4] this [Step 3] should resolve
+       * 	only when currentSelection is equal to CURRENT_WEBS
+       * 	else should navigate to the new selected webs.
+       *  This is to not open new context nor pages.
+       *
+       *  IDK what to do if any of the services in the new loop are not available.
+      */
+
+      // const previousLoop = currentSelection.filter(x=> this.#CURRENT_WEBS.has(x.service));
+      // console.log(previousLoop);
+
+			// const isEqualToPreviusLoop = previousLoop.every(Boolean);
+			// if (isEqualToPreviusLoop || this.#BROWSER) Promise.resolve();
 
 			this.#BROWSER = await chromium.launch({ headless: false });
 			this.#CTX = await this.#BROWSER.newContext();
 
-			for await (const selectedWeb of currentSelection) {
-				const page = await this.#isPageAvailable(selectedWeb);
-				if (!page) break;
-				await this.#navigateToDashboard(page, selectedWeb);
-				this.#CURRENT_WEBS.set(selectedWeb, { page, dashboard: page.url() });
+      log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`}`)
+			for await (const {service}of currentSelection) {
+				const page = await this.#isPageAvailable(service);
+				if (!page)  break
+        const badResponse = await this.#navigateToDashboard(page, service);
+        if(!badResponse) break
+        this.#CURRENT_WEBS.set(service, { page, dashboard: ServiceDashboards[service] });
 			}
-		} catch (error) {}
+
+      if(!this.#CURRENT_WEBS.size){
+        log.warning(`No se hay servicios seleccionados disponibles a los que navegar`)
+        setTimeout(async() => await this.#waitForUserMenuAction(), 2000);
+        return;
+      }
+
+      await this.#checkForBills()
+		} catch (error) {
+      this.#exceptionTermination(error)
+    }
 	}
 
 	static async #isPageAvailable(
@@ -234,28 +258,28 @@ class Sequence {
 			const page = await this.#CTX!.newPage();
 			await page.goto(ServicePages[service]);
 
-			if (StepsToLogin[service] !== undefined) {
-				for await (const step of StepsToLogin[service]!) {
-					const element = page.locator(step);
-					await element.waitFor();
-					await element.click();
-				}
-			}
+			if (StepsToLogin[service] === undefined) return page;
 
-			return page;
+			return await StepsToLogin[service]!(page);
 		} catch (error) {
+      if(this.#DEBUG_MODE) console.log(error)
 			return null;
 		}
 	}
 
+  /**
+   * @returns Wheter the login was succesful or not.
+   */
 	static async #navigateToDashboard(
 		page: Page,
 		service: ISupportedServices,
-	): Promise<void> {
+	): Promise<boolean> {
 		const field = LoginFields[service];
 		const fieldData = this.#DATA.serviceFields[service]!;
 
 		try {
+      await page.waitForLoadState("domcontentloaded")
+
 			const userInput = page.locator(field.username);
 			await userInput.waitFor();
 			await userInput.fill(fieldData.username!);
@@ -268,83 +292,73 @@ class Sequence {
 			await submit.waitFor();
 			await submit.click();
 
-			// spinner.success({ text: `Logeado en '${service}' correctamente.` });
+      const res = await page.waitForResponse(field.loginEndpoint)
+      if(res.ok()) return true
+
+      log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas. \nO revise que no haya ningun error en ${picocolors.underline(ServicePages[service])}`)
+
+      return false
 		} catch (error) {
-			// spinner.error({
-			// 	text: `Ha ocurrido un error al logearse. \n ${JSON.stringify(error)}`,
-			// 	mark: ":(",
-			// });
-			// await this.terminateProgram(1);
-		}
+      return this.#exceptionTermination(error)
+    }
 	}
 
 	/**
+   *  Navigate to bills page and check for last one, then returns to dashboard
+   *
 	 *  @description Step 4
 	 */
-	static async #retrieveBills() {
+	static async #checkForBills() {
 		this.#STEP = 4;
+    try {
+      log.info("Buscando ultima factura..")
+      const bills = new Map<ISupportedServices,string|null>()
+      for await (const [service, {dashboard,page}] of this.#CURRENT_WEBS) {
+        const { bill } = await StepsToLastBill[service](page)
+        bills.set(service, bill)
+      }
+
+
+    } catch (error) {
+      return this.#exceptionTermination(error)
+    }
 	}
 
-	/**
-	 *  Navigates to the most likely page to have last bill.
-	 */
-	static async #lookForBill(
-		service: ISupportedServices,
-	): Promise<string | null> {
-		try {
-			const { page } = this.#CURRENT_WEBS.get(service)!;
-			const tempArr = Object.values(StepsToLastBill[service]!);
-
-			for (let i = 0; i <= tempArr.length; ++i) {
-				const element = page.locator(tempArr[i]);
-				await element.waitFor();
-				if (i === tempArr.length) {
-					return await element.innerHTML();
-				}
-				await element.click();
-			}
-			return null;
-		} catch (_) {
-			console.log(_);
-			return null;
-		}
-	}
 
 	/**
 	 *
 	 * @description Step 5 - Final
 	 */
-	static async #waitForActionInBillSelection(): Promise<void> {
-		this.#STEP = 5;
-		// try {
-		//   const bills = this.#CURRENT_WEBS
-		//   const answer = await chooseBillToPayPrompt(
-		//     Object.keys(this.#CURRENT_WEBS) as ISupportedServices[],
-		//   );
-		//   switch (answer) {
-		//     case 'all':
-		//       return await this.#waitForActionInBillSelection();
-		//     case 'exit':
-		//       return await this.#waitForUserMenuAction();
-		//     default:
-		//       const bill = await this.#lookForBill(answer);
-		//       if (bill) log.info(`Monto a pagar: ${bill}`);
-		//       else
-		//         log.error(
-		//           'No se ha podido encontrar el monto a pagar, \n nuestros metodos pueden estar desactualizados, \n pongase en contacto con el autor para mas información.',
-		//         );
-		//       return await this.#waitForActionInBillSelection();
-		//   }
-		// } catch (error) {
-		//   this.exceptionTermination(error);
-		// }
-	}
+	// static async #waitForActionInBillSelection(): Promise<void> {
+	// 	this.#STEP = 5;
+	// 	// try {
+    // const answer = await chooseBillToPayPrompt(
+    //   [...this.#CURRENT_WEBS].map(x=> ({}))
+    // );
+    // switch (answer) {
+    //   case 'all':
+    //     return await this.#waitForActionInBillSelection();
+    //   case 'exit':
+    //     return await this.#waitForUserMenuAction();
+    //   default:
+    //     const bill = await this.#lookForBill(answer);
+    //     if (bill) log.info(`Monto a pagar: ${bill}`);
+    //     else
+    //       log.error(
+    //         'No se ha podido encontrar el monto a pagar, \n nuestros metodos pueden estar desactualizados, \n pongase en contacto con el autor para mas información.',
+    //       );
+    //     return await this.#waitForActionInBillSelection();
+    // }
+	// 	// } catch (error) {
+	// 	//   this.exceptionTermination(error);
+	// 	// }
+	// }
 
 	static async #navigateToPayForm(service: ISupportedServices) {
 		try {
 			const { page } = this.#CURRENT_WEBS.get(service)!;
 			for (const step of Object.values(StepsToPay[service]!)) {
-				const element = page.locator(step);
+				const element = page!.locator(step);
 				await element.waitFor();
 				await element.click();
 			}
@@ -370,11 +384,11 @@ class Sequence {
 		}
 	}
 
-	static #exceptionTermination(e: unknown) {
+	static #exceptionTermination<T>(e: unknown) {
 		cancel(
 			`Ha ocurrido un error inesperado en el [Step ${this.#STEP}]: \n${JSON.stringify(e, null, 2)}`,
 		);
-		exit(0);
+		return exit(0);
 	}
   static #outroTermination(){
     outro(

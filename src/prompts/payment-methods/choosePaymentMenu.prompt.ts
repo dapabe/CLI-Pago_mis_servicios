@@ -2,6 +2,7 @@ import { SafeExitMessage } from '@/constants/random';
 
 import { ISupportedServices } from '@/constants/services';
 import { IUserData } from '@/schemas/userData.schema';
+import { IUserService } from '@/schemas/userServiceField.schema';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
@@ -9,7 +10,7 @@ import { addPaymentMethodPrompt } from './addPaymentMethod.prompt';
 import { deletePaymentMethodPrompt } from './deletePaymentMethod.prompt';
 
 export async function choosePaymentMenuPrompt(userData: IUserData) {
-  const aliases = userData.paymentMethods.map((x) => x!.payAlias);
+  const aliases = userData.paymentMethods.map((x) => ({payAlias: x!.payAlias,uuid: x!.uuid}))
   const answer = await select<
     any,
     'exit' | 'delete' | 'create' | ISupportedServices
@@ -33,8 +34,8 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
         value: 'delete',
       },
       ...aliases.map((x) => ({
-        label: x,
-        value: x,
+        label: picocolors.underline(x.payAlias),
+        value: x.uuid,
         hint: `Editar - ${picocolors.yellow('Se veran tus datos al editar, asegurate que nadie lo vea.')}`,
       })),
     ],
@@ -47,20 +48,25 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
 
   if (answer === 'delete') {
     if (!aliases.length) return await choosePaymentMenuPrompt(userData);
+
     const results = await deletePaymentMethodPrompt(aliases);
     if (results) {
+      //  Replace with filtered payments
       userData.paymentMethods = userData.paymentMethods.filter(
         (x) => !results.includes(x!.uuid),
       );
-      //  Delete references in services
-      const refs = Object.entries(userData.serviceFields)
-        .filter((x) => !results.includes(x[1].aliasRef!))
-        .map(([service, field]) => ({
-          [service]: { ...field, aliasRef: null },
-        }));
-      console.log(refs);
 
-      return await Promise.resolve();
+      //  Delete references in services
+      const refs: IUserService = {}
+      //  Filter services with no references
+      for (const [service, fields] of Object.entries(userData.serviceFields).filter(x=> x[1].aliasRef !== null)) {
+        if(results.includes(fields.aliasRef!)) {
+          refs[service] = {...fields, aliasRef: null}
+        } else {
+          refs[service] = fields
+        }
+      }
+      userData.serviceFields = refs
     }
     return await choosePaymentMenuPrompt(userData);
   }

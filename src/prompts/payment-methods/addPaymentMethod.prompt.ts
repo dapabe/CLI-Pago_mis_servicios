@@ -105,6 +105,6 @@ export async function addPaymentMethodPrompt(
       userData.serviceFields[service as ISupportedServices]!.aliasRef = payMethod.uuid!;
     }
   } else {
-    userData.paymentMethods.push({ ...group, payAlias,uuid: crypto.randomUUID() });
+    userData.paymentMethods.push({ ...group, payAlias, uuid: crypto.randomUUID() });
   }
 }

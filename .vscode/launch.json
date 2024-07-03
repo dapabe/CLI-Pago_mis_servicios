@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Build & Debug",
       "program": "${workspaceFolder}\\dist\\index.js",
-      "console": "externalTerminal",
+      "console": "integratedTerminal",
       "args": ["--debug"],
       "preLaunchTask": "build-dev",
       "presentation": {

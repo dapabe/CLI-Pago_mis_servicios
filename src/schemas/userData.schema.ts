@@ -11,6 +11,7 @@ import { UserServiceManager } from './userServiceField.schema.js';
  */
 export class UserDataSchema extends ZodSchemaManager<"0.0.0",typeof UserDataSchema> implements SchemaUtilities{
   static "0.0.0" = z.object({
+    secureMode: z.boolean().default(true),
     serviceFields: UserServiceManager.getLastSchema().default({}),
     paymentMethods: StoredPaymentMethodManager.getLastSchema()
       .optional()

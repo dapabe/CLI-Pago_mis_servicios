@@ -13,25 +13,28 @@ export async function chooseServiceLoginFieldPrompt(
   initField?: keyof IServiceLoginFields,
 ) {
   const noPayMethods = !userData.paymentMethods.length;
-  const hintStatus = (field: keyof IServiceLoginFields) => {
-    if (field === 'aliasRef')
-      return (
-        noPayMethods &&
-        picocolors.yellow('Debes añadir un metodo de pago primero.')
-      );
-  };
+
   const labelStatus = (
     field: keyof IServiceLoginFields,
     value: string | null,
   ) => {
-    if (field === 'aliasRef')
-      return noPayMethods
-        ? picocolors.red(TranslatedInput[field])
-        : picocolors.green(TranslatedInput[field]);
-    return value
+    if (field === 'aliasRef') {
+      if(noPayMethods) return picocolors.red(TranslatedInput[field])
+      return value ? picocolors.green(TranslatedInput[field]) : TranslatedInput[field]
+    }
+      return value
       ? picocolors.green(TranslatedInput[field])
       : TranslatedInput[field];
-  };
+    };
+
+    const hintStatus = (field: keyof IServiceLoginFields,value: string | null) => {
+      if (field === 'aliasRef') {
+        if(noPayMethods) return picocolors.yellow('Debes añadir un metodo de pago primero.')
+        const payAlias = userData.paymentMethods.find(x=> x?.uuid === value)?.payAlias
+        return payAlias ?? ""
+      }
+      return userData.secureMode ? "" : value ?? ""
+    };
 
   const answer = await select<any, 'exit' | keyof IServiceLoginFields>({
     message: `Editando usuario de '${picocolors.underline(service)}'`,
@@ -42,7 +45,7 @@ export async function chooseServiceLoginFieldPrompt(
         ([field, value]) => ({
           label: labelStatus(field as keyof IServiceLoginFields, value),
           value: field,
-          hint: hintStatus(field as keyof IServiceLoginFields),
+          hint: hintStatus(field as keyof IServiceLoginFields,value),
         }),
       ),
     ],

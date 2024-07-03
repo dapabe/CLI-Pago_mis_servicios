@@ -68,7 +68,7 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
     return await chooseSupportedServicePrompt(userData);
   }
 
-  const fieldData = await editSupportedServiceField(userData, serviceFieldData);
+  const fieldData = await editSupportedServiceField(userData, serviceFieldData, chosenService);
   if (
     fieldData === 'exit' ||
     (serviceFieldData === 'aliasRef' && !userData.paymentMethods.length)

@@ -28,7 +28,7 @@ export async function selectMenuActionPrompt(
       {
         label: 'Mis cuentas',
         value: 'serviceFields',
-        hint: 'Añade, elimina o modifica tus cuentas.',
+        hint: 'Añade o modifica tus cuentas.',
       },
       {
         label: noPayMethods
@@ -36,6 +36,11 @@ export async function selectMenuActionPrompt(
           : 'Metodos de pago',
         value: 'paymentMethods',
         hint: `Añade, elimina o modifica tus metodos de pago. ${noPayMethods ? picocolors.yellow('[Necesitas al menos 1 para efectuar pagos]') : ''}`,
+      },
+      {
+        label: `Modo seguro: ${userData.secureMode ? picocolors.green("Activado") : `${picocolors.red("Desactivado")} - ${picocolors.yellow("[Ten cuidado a quien muestras tus datos]")}`}`,
+        value:"secureMode",
+        hint: "Oculta o no el valor de los campos con información sensible"
       },
       {
         label: 'Cambiar contraseña',

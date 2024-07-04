@@ -2,6 +2,7 @@ import {
   RequiredServiceFieldAmount,
   SafeExitMessage,
 } from '@/constants/random.js';
+import { ServiceOnRevision } from '@/constants/service-on-revision.js';
 import { ISupportedServices, SupportedServices } from '@/constants/services.js';
 import { ServiceLoginFieldsManager } from '@/schemas/serviceLoginField.schema.js';
 import { IUserData } from '@/schemas/userData.schema.js';
@@ -21,11 +22,18 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 
   const completionStatus = (service: ISupportedServices): string => {
     const noExistence = !userData.serviceFields[service];
+    if (ServiceOnRevision[service]) return picocolors.red(service)
     if (noExistence) return service;
     if (completedFields(service) === RequiredServiceFieldAmount)
       return picocolors.green(service);
     return picocolors.yellow(service);
   };
+
+  const hintStatus = (service: ISupportedServices)=>{
+    if(ServiceOnRevision[service]) return picocolors.red("En revisión");
+    if(!userData.serviceFields[service]) return "";
+    return `${completedFields(service)}/${RequiredServiceFieldAmount} campos completados`;
+  }
 
   const chosenService = await select<any, 'exit' | ISupportedServices>({
     message: '¿Que servicio editaras?',
@@ -38,9 +46,7 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
       ...Object.values(SupportedServices.enum).map((service) => ({
         label: completionStatus(service),
         value: service,
-        hint: !userData.serviceFields[service]
-          ? ''
-          : `${completedFields(service)}/${RequiredServiceFieldAmount} campos completados`,
+        hint: hintStatus(service),
       })),
     ],
   });
@@ -50,6 +56,8 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
   }
 
   if (chosenService === 'exit') return await Promise.resolve();
+
+  if (ServiceOnRevision[chosenService]) return await chooseSupportedServicePrompt(userData)
 
   //  In case the field does not exists it has to be created for the next function
   //  or else will crash, because it depends on `chosenService` has properties.

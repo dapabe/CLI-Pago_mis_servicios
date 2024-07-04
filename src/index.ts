@@ -13,9 +13,8 @@ import path from "node:path";
 import { cwd, exit } from "node:process";
 import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
-import "zx/globals";
 import { LoginFields } from "./constants/login-fields";
-import { AppPackage, generatedFileName } from "./constants/random";
+import { AppPackage, ContextRouteURLs, generatedFileName } from "./constants/random";
 import { ServicePages } from "./constants/service-pages";
 import { BillData, StepsToLastBill } from "./constants/steps-to-last-bill";
 import { StepsToLogin } from "./constants/steps-to-login";
@@ -27,13 +26,14 @@ import { firstTimePrompt } from "./prompts/startup/firstTime.prompt";
 import { chooseSupportedServicePrompt } from "./prompts/supported-services/chooseSupportedService.prompt";
 
 import { ServiceDashboards } from "./constants/service-dashboards";
+import { ServiceOnRevision } from "./constants/service-on-revision";
 import type { ISupportedServices } from "./constants/services";
 import { chooseBillToPayPrompt } from "./prompts/bill-context/chooseBillToPay.prompt";
 import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import { IUserData, UserDataManager } from "./schemas/userData.schema";
 import { encryptData } from "./utils/crypto";
-import { getServicesWithAllFilledLogins, getServicesWithFilledLogins } from "./utils/random";
+import { conjunctionList, getServicesWithAllFilledLogins, getServicesWithFilledLogins } from "./utils/random";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -75,10 +75,11 @@ class Sequence {
 	static #CTX: BrowserContext | null = null;
 	/**
 	 *  The first time an user fetchs to pages
+   *  `null` value means unavailable.
 	 */
 	static #CURRENT_WEBS = new Map<
 		ISupportedServices,
-		{ page: Page; dashboard: string }
+		{ page: Page; dashboard: string } | null
 	>();
 
 
@@ -117,7 +118,7 @@ class Sequence {
 			}
 			const { password, userData } = await decryptPrompt(validJson.data,this.#FILE_PATH);
 			this.#DATA = userData;
-			this.#PASS = password;
+      this.#PASS = password;
 
 			this.#FIRST_TIME = !Boolean(getServicesWithAllFilledLogins(this.#DATA).length);
 
@@ -201,7 +202,7 @@ class Sequence {
 			const connection = await isOnline();
 			if (!connection) {
         log.error("Sin internet, volviendo al menú..")
-        setTimeout(async()=> await this.#waitForUserMenuAction(),2000)
+        setTimeout(async()=> await this.#waitForUserMenuAction(), 2000)
         return
       }
 
@@ -226,18 +227,29 @@ class Sequence {
       // console.log(previousLoop);
 
 			// const isEqualToPreviusLoop = previousLoop.every(Boolean);
-			// if (isEqualToPreviusLoop || this.#BROWSER) Promise.resolve();
+			// if (isEqualToPreviusLoop || this.#BROWSER) return await this.#checkForBills()
 
 			this.#BROWSER = await chromium.launch({ headless: false });
-			this.#CTX = await this.#BROWSER.newContext();
+			this.#CTX = await this.#BROWSER.newContext({locale: "es-ES"});
+      const invalidateResources = process.env.NODE_ENV === "dev" ? ContextRouteURLs.DEV: ContextRouteURLs.PROD
+      this.#CTX.route(invalidateResources, (route)=> route.abort())
 
       log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`}`)
 			for await (const { service } of currentSelection) {
+        if(ServiceOnRevision[service]) {
+          this.#CURRENT_WEBS.set(service, null);
+          break
+        }
 				const page = await this.#isPageAvailable(service);
-				if (!page)  break
-        const badResponse = await this.#navigateToDashboard(page, service);
-        console.log({badResponse})
-        if(!badResponse) break
+				if (!page) {
+          this.#CURRENT_WEBS.set(service, null);
+          break
+        }
+        const goodResponse = await this.#navigateToDashboard(page, service);
+        if(!goodResponse) {
+          this.#CURRENT_WEBS.set(service, null);
+          break
+        };
         this.#CURRENT_WEBS.set(service, { page, dashboard: ServiceDashboards[service] });
 			}
 
@@ -253,14 +265,83 @@ class Sequence {
     }
 	}
 
-	static async #isPageAvailable(
+
+	/**
+   *  Navigate to bills page and check for last one, then returns to dashboard
+   *
+	 *  @description Step 4
+	 */
+	static async #checkForBills() {
+		this.#STEP = 4;
+    try {
+      log.info("Buscando ultima factura..")
+      const bills = new Map<ISupportedServices,BillData | null>()
+      for (const [service, value] of [...this.#CURRENT_WEBS]) {
+        if(!value) {
+          bills.set(service, value)
+          break
+        }
+        const data = await StepsToLastBill[service](value.page)
+        this.#DEBUG_MODE && console.log(service,data)
+
+        bills.set(service, data)
+        if(data) await value.page.goto(value.dashboard)
+      }
+
+      await this.#waitForActionInBillSelection(bills)
+    } catch (error) {
+      return this.#exceptionTermination(error)
+    }
+	}
+
+
+	/**
+	 *
+	 * @description Step 5 - Final
+	 */
+	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices,BillData | null>): Promise<void> {
+		this.#STEP = 5;
+		try {
+      const availableBills = [...currentBills].map(([service, bill])=>({service, data:bill}))
+      const answer = await chooseBillToPayPrompt(availableBills);
+      switch (answer) {
+        case 'all':
+          const filtered = availableBills.filter(x=> x.data !== null)
+          if(!filtered.length) return await this.#waitForActionInBillSelection(currentBills);
+
+          log.info(`Pagando ${picocolors.underline(conjunctionList(filtered.map(x=>x.service)))}..`)
+          // await this.#payAll()
+          log.success(`¡Pagado ${picocolors.underline("todo")} correctamente!`)
+
+          return await this.#waitForActionInBillSelection(currentBills);
+        case 'exit':
+          return await this.#waitForUserMenuAction();
+        default:
+          if(ServiceOnRevision[answer]) return await this.#waitForActionInBillSelection(currentBills);
+
+          log.info(`Pagando ${answer}..`)
+          await StepsToPay[answer](this.#CURRENT_WEBS.get(answer)!.page)
+          log.success(`¡${picocolors.underline(answer)} pagado con exito!`)
+          return await this.#waitForActionInBillSelection(currentBills);
+        }
+		} catch (error) {
+		  this.#exceptionTermination(error);
+		}
+	}
+
+	//  Utilities section
+
+  static async #isPageAvailable(
 		service: ISupportedServices,
 	): Promise<Page | null> {
 		try {
 			const page = await this.#CTX!.newPage();
-			await page.goto(ServicePages[service]);
+			await page.goto(ServicePages[service],{waitUntil:"domcontentloaded",timeout:20000});
+      await page.waitForLoadState()
 
-			if (StepsToLogin[service] === undefined) return page;
+      //  In case this service doesnt have additional steps
+      //  like navigating from another url just return the Page.
+      if (StepsToLogin[service] === undefined) return page;
 
 			return await StepsToLogin[service]!(page);
 		} catch (error) {
@@ -280,8 +361,6 @@ class Sequence {
 		const fieldData = this.#DATA.serviceFields[service]!;
 
 		try {
-      await page.waitForLoadState("domcontentloaded")
-
 			const userInput = page.locator(field.username);
 			await userInput.waitFor();
 			await userInput.fill(fieldData.username!);
@@ -294,69 +373,30 @@ class Sequence {
 			await submit.waitFor();
 			await submit.click();
 
-      this.#DEBUG_MODE && log.message(`${service}: ${field.loginEndpoint}`)
-      const res = await page.waitForResponse(field.loginEndpoint)
-      if(res.ok()) return true
+      const waitLogin =async()=> {
+        try {
+          await page.waitForURL(ServiceDashboards[service],{timeout:500000})
+          return true
+        } catch (error) {
+          console.log(error)
+          log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas. \nO revise que no haya ningun error en ${picocolors.underline(ServicePages[service])}`)
+          return false
+        }
+      }
 
-      log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas. \nO revise que no haya ningun error en ${picocolors.underline(ServicePages[service])}`)
-
-      return false
+      return await waitLogin()
 		} catch (error) {
       return this.#exceptionTermination(error)
     }
 	}
 
-	/**
-   *  Navigate to bills page and check for last one, then returns to dashboard
-   *
-	 *  @description Step 4
-	 */
-	static async #checkForBills() {
-		this.#STEP = 4;
+  static async #payAll(availableBills: {service:ISupportedServices, data:BillData}[]){
     try {
-      log.info("Buscando ultima factura..")
-      const bills = new Map<ISupportedServices,BillData>()
-      for await (const [service, {dashboard,page}] of this.#CURRENT_WEBS) {
-        const data = await StepsToLastBill[service](page)
-        bills.set(service, data)
 
-        await page.goto(dashboard)
-      }
-
-      await this.#waitForActionInBillSelection(bills)
     } catch (error) {
       return this.#exceptionTermination(error)
     }
-	}
-
-
-	/**
-	 *
-	 * @description Step 5 - Final
-	 */
-	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices,BillData>): Promise<void> {
-		this.#STEP = 5;
-		try {
-    const answer = await chooseBillToPayPrompt(
-      [...currentBills].map(([service, bill])=>({service, ...bill}))
-    );
-    switch (answer) {
-      case 'all':
-        return await this.#waitForActionInBillSelection(currentBills);
-      case 'exit':
-        return await this.#waitForUserMenuAction();
-      default:
-        log.info(`Pagando ${answer}..`)
-        await StepsToPay[answer](this.#CURRENT_WEBS.get(answer)!.page)
-        log.success(`¡${answer} pagado con exito!`)
-        return await this.#waitForActionInBillSelection(currentBills);
-      }
-		} catch (error) {
-		  this.#exceptionTermination(error);
-		}
-	}
-
-	//  Utilities section
+  }
 
 	/**
 	 *  Saves current data.
@@ -374,20 +414,43 @@ class Sequence {
 		}
 	}
 
-	static #exceptionTermination<T>(e: unknown) {
+	static #exceptionTermination(e: unknown) {
+    this.#closeWeb()
 		cancel(
 			`Ha ocurrido un error inesperado en el [Step ${this.#STEP}]: \n${JSON.stringify(e, null, 2)}`,
 		);
 		return exit(0);
 	}
   static #outroTermination(){
+    this.#closeWeb()
     outro(
       picocolors.green(
         "✨ Gracias por utilizar esta herramienta, considera hacer un aporte :)",
       ),
     );
-   exit(0);
+   return exit(0);
+  }
+
+  static async #closeWeb(){
+    if(this.#CTX) await this.#CTX.close()
+    if(this.#BROWSER) await this.#BROWSER.close()
   }
 }
 
 await Sequence.initialize()
+
+
+// const bro = await chromium.launch({headless: false})
+// const ctx = await bro.newContext({locale:"es-ES"})
+// await ctx.route(ContextRouteURLs.DEV, route=> route.abort())
+
+//   const pag = await ctx.newPage()
+//   await pag.goto(ServicePages.Aysa)
+//   await pag.waitForLoadState()
+//   await pag.goto("https://oficinavirtual.web.aysa.com.ar/auth/index.html?#Accesos/")
+//   await pag.waitForLoadState()
+
+
+
+
+

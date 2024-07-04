@@ -7,7 +7,7 @@ import { ISupportedServices, SupportedServices } from './services';
  */
 export const ServicePages: Record<ISupportedServices, string> = {
   [SupportedServices.enum.Aysa]:
-    'https://oficinavirtual.web.aysa.com.ar/index.html',
+    'https://oficinavirtual.web.aysa.com.ar/auth/index.html?#Accesos/',
   [SupportedServices.enum.Edesur]: 'https://ov.edesur.com.ar/login',
   [SupportedServices.enum.Telecentro]:
     'https://telecentro.com.ar/sucursal-virtual/login',

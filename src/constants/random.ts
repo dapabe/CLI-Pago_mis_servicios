@@ -11,3 +11,8 @@ export const RequiredServiceFieldAmount = Object.keys(
   ServiceLoginFieldsManager.getLastSchema().shape,
 ).length;
 
+
+export const ContextRouteURLs = {
+  PROD: "**/*.{png,jpg,jpeg,css}",
+  DEV: "**/*.{png,jpg,jpeg}"
+} as const

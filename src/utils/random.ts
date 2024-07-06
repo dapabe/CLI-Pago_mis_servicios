@@ -23,3 +23,7 @@ export function conjunctionList(s: string[]) {
 export function mapZodErrors(err: ZodError){
   return conjunctionList(err.issues.map(x=>x.message))
 }
+
+// export function transformBillAmount(n:string){
+//   return n.split(".").
+// }

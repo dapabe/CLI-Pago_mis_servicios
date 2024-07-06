@@ -5,27 +5,29 @@ import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
 
-type BillContext = {service:ISupportedServices, data: BillData | null}
+type BillContext = {service:ISupportedServices, data: BillData | null, onRevision: boolean}
 
 
 export async function chooseBillToPayPrompt(
   availableWebsAndBill: BillContext[],
 ) {
-  const labelStatus = ({service,data}: BillContext) => {
-    if (!data) return picocolors.red(service);
-    if (!data.bill) return picocolors.yellow(service)
+  const labelStatus = ({service,data,onRevision}: BillContext) => {
+    if (onRevision) return picocolors.red(service);
+    if (!data) return picocolors.yellow(service)
     if (data.paid) return picocolors.green(service);
     return service;
   };
-  const hintStatus = ({data}: BillContext) => {
-    if (!data) return picocolors.red("En revisión")
-    if (!data.bill) return picocolors.yellow(
-        'Ha ocurrido un error, no se ha podido encontrar con el monto a pagar, ponganse en contacto con el creador y indique cual servicio genera el problema',
-      );
+
+  const hintStatus = ({data,onRevision}: BillContext) => {
+    if (onRevision) return picocolors.red("En revisión")
+    if (!data) return 'Ha ocurrido un error al buscar datos de la ultima factura'
     if (data.paid)
-      return `${picocolors.underline('Pagado')}: ${data.bill} - ${data.expireDate}`;
+      return `Pagado: ${picocolors.underline(data.bill)} - ${picocolors.green(data.expireDate)}`;
     return `Monto a pagar: ${picocolors.underline(data.bill)} - Vencimiento: ${picocolors.yellow(data.expireDate)}`;
   };
+
+  const billAmount = availableWebsAndBill.reduce((prev,curr)=> prev + parseInt(curr.data?.bill ?? "0"), 0)
+
   const answer = await select<any, 'exit' | 'all' | ISupportedServices>({
     message:
       '¿Que pagaras hoy?',
@@ -37,9 +39,9 @@ export async function chooseBillToPayPrompt(
         hint: 'Vuelve al menú anterior',
       },
       {
-        label: `Todo - Total: ${picocolors.underline(availableWebsAndBill.reduce((prev,curr)=> prev + parseInt(curr.data?.bill ?? "0"), 0))}`,
+        label: `Todo - Total: ${picocolors.underline(billAmount || "Nada")}`,
         value: 'all',
-        hint: 'Paga todas los impuestos y facturas pendientes con los respectivos metodos de pago',
+        hint: billAmount ? 'Paga todas los impuestos y facturas pendientes con los respectivos metodos de pago' : "",
       },
       ...availableWebsAndBill.map((ctx) => ({
         label: labelStatus(ctx),

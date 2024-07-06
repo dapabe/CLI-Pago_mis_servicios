@@ -31,9 +31,10 @@ import type { ISupportedServices } from "./constants/services";
 import { chooseBillToPayPrompt } from "./prompts/bill-context/chooseBillToPay.prompt";
 import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { EncryptedDataManager } from "./schemas/encryptedData.schema";
+import { IServiceLoginFields } from "./schemas/serviceLoginField.schema";
 import { IUserData, UserDataManager } from "./schemas/userData.schema";
 import { encryptData } from "./utils/crypto";
-import { conjunctionList, getServicesWithAllFilledLogins, getServicesWithFilledLogins } from "./utils/random";
+import { conjunctionList, getServicesWithAllFilledLogins } from "./utils/random";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -56,7 +57,7 @@ class Sequence {
   static #FILE_PATH = path.join(cwd(), generatedFileName);
 
 	static set #STEP(n: number) {
-		if (this.#DEBUG_MODE) note(`Step ${n}`, "[DEBUG]");
+		if (this.#DEBUG_MODE) log.message(`DEBUG: Step ${n}`);
 		this.#_STEP = n;
 	}
 
@@ -74,8 +75,9 @@ class Sequence {
 	static #BROWSER: Browser | null = null;
 	static #CTX: BrowserContext | null = null;
 	/**
-	 *  The first time an user fetchs to pages
-   *  `null` value means unavailable.
+	 *  The first time an user fetchs to pages. \
+   *  `null` value means unavailable because of an error, \
+   *  dont mistake with services on revision.
 	 */
 	static #CURRENT_WEBS = new Map<
 		ISupportedServices,
@@ -196,24 +198,25 @@ class Sequence {
 	 */
 	static async #checkSelectedServices(): Promise<void> {
 		this.#STEP = 3;
-		const currentSelection = getServicesWithFilledLogins(this.#DATA)
+		const currentSelection = getServicesWithAllFilledLogins(this.#DATA)
 		try {
 
 			const connection = await isOnline();
 			if (!connection) {
         log.error("Sin internet, volviendo al menú..")
         setTimeout(async()=> await this.#waitForUserMenuAction(), 2000)
-        return
+        return;
       }
 
 			if (!currentSelection.length) {
         log.error("Sin servicios al que navegar, volviendo al menú..")
         setTimeout(async()=> await this.#waitForUserMenuAction(), 2000);
-        return
+        return;
       }
 
 
 			/**
+       *  [WIP]
        * 	When user navigates to [Step 2] from
 			 * 	[Step 4] this [Step 3] should resolve
        * 	only when currentSelection is equal to CURRENT_WEBS
@@ -234,18 +237,21 @@ class Sequence {
       const invalidateResources = process.env.NODE_ENV === "dev" ? ContextRouteURLs.DEV: ContextRouteURLs.PROD
       this.#CTX.route(invalidateResources, (route)=> route.abort())
 
-      log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`}`)
-			for await (const { service } of currentSelection) {
+      log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`} (Iniciando sesión)`)
+			for await (const { service, fields } of currentSelection) {
+
         if(ServiceOnRevision[service]) {
           this.#CURRENT_WEBS.set(service, null);
           break
         }
-				const page = await this.#isPageAvailable(service);
+
+        const page = await this.#isPageAvailable(service);
 				if (!page) {
           this.#CURRENT_WEBS.set(service, null);
           break
         }
-        const goodResponse = await this.#navigateToDashboard(page, service);
+
+        const goodResponse = await this.#navigateToDashboard(page, service, fields);
         if(!goodResponse) {
           this.#CURRENT_WEBS.set(service, null);
           break
@@ -259,6 +265,7 @@ class Sequence {
         return;
       }
 
+      log.info("Buscando ultima factura.. (Esto puede tardar según la cantidad de servicios)")
       await this.#checkForBills()
 		} catch (error) {
       this.#exceptionTermination(error)
@@ -267,14 +274,15 @@ class Sequence {
 
 
 	/**
-   *  Navigate to bills page and check for last one, then returns to dashboard
+   *  Navigate to bills page and check the last bill then returns to dashboard.
+   *  This method is also used after paying bill/s. (WIP)
    *
 	 *  @description Step 4
 	 */
 	static async #checkForBills() {
 		this.#STEP = 4;
     try {
-      log.info("Buscando ultima factura..")
+      if(!this.#CURRENT_WEBS) throw Error("NO_CURRENT_WEBS")
       const bills = new Map<ISupportedServices,BillData | null>()
       for (const [service, value] of [...this.#CURRENT_WEBS]) {
         if(!value) {
@@ -282,7 +290,6 @@ class Sequence {
           break
         }
         const data = await StepsToLastBill[service](value.page)
-        this.#DEBUG_MODE && console.log(service,data)
 
         bills.set(service, data)
         if(data) await value.page.goto(value.dashboard)
@@ -302,26 +309,22 @@ class Sequence {
 	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices,BillData | null>): Promise<void> {
 		this.#STEP = 5;
 		try {
-      const availableBills = [...currentBills].map(([service, bill])=>({service, data:bill}))
+      const availableBills = [...currentBills].map(([service, bill])=>({service, data:bill, onRevision: ServiceOnRevision[service]}))
       const answer = await chooseBillToPayPrompt(availableBills);
       switch (answer) {
         case 'all':
           const filtered = availableBills.filter(x=> x.data !== null)
           if(!filtered.length) return await this.#waitForActionInBillSelection(currentBills);
 
-          log.info(`Pagando ${picocolors.underline(conjunctionList(filtered.map(x=>x.service)))}..`)
           // await this.#payAll()
-          log.success(`¡Pagado ${picocolors.underline("todo")} correctamente!`)
 
           return await this.#waitForActionInBillSelection(currentBills);
         case 'exit':
           return await this.#waitForUserMenuAction();
         default:
-          if(ServiceOnRevision[answer]) return await this.#waitForActionInBillSelection(currentBills);
-
-          log.info(`Pagando ${answer}..`)
-          await StepsToPay[answer](this.#CURRENT_WEBS.get(answer)!.page)
-          log.success(`¡${picocolors.underline(answer)} pagado con exito!`)
+          const noData = !availableBills.find(x=> x.service === answer)?.data
+          if(ServiceOnRevision[answer] || noData) return await this.#waitForActionInBillSelection(currentBills);
+          await this.#payService(answer)
           return await this.#waitForActionInBillSelection(currentBills);
         }
 		} catch (error) {
@@ -336,14 +339,7 @@ class Sequence {
 	): Promise<Page | null> {
 		try {
 			const page = await this.#CTX!.newPage();
-			await page.goto(ServicePages[service],{waitUntil:"domcontentloaded",timeout:20000});
-      await page.waitForLoadState()
-
-      //  In case this service doesnt have additional steps
-      //  like navigating from another url just return the Page.
-      if (StepsToLogin[service] === undefined) return page;
-
-			return await StepsToLogin[service]!(page);
+			return await StepsToLogin[service](page);
 		} catch (error) {
       if(this.#DEBUG_MODE) console.log(error)
 			return null;
@@ -356,9 +352,9 @@ class Sequence {
 	static async #navigateToDashboard(
 		page: Page,
 		service: ISupportedServices,
+    fieldData: Omit<IServiceLoginFields,"aliasRef">
 	): Promise<boolean> {
 		const field = LoginFields[service];
-		const fieldData = this.#DATA.serviceFields[service]!;
 
 		try {
 			const userInput = page.locator(field.username);
@@ -375,7 +371,7 @@ class Sequence {
 
       const waitLogin =async()=> {
         try {
-          await page.waitForURL(ServiceDashboards[service],{timeout:500000})
+          await page.waitForURL(ServiceDashboards[service])
           return true
         } catch (error) {
           console.log(error)
@@ -390,9 +386,24 @@ class Sequence {
     }
 	}
 
+  static async #payService(service: ISupportedServices){
+    const method = this.#DATA.paymentMethods.find(x=> x!.uuid === this.#DATA.serviceFields[service]?.aliasRef)!
+    log.info(`Pagando ${service}..`)
+    try {
+      const page = this.#CURRENT_WEBS.get(service)!.page
+      const res =  await StepsToPay[service](page, method)
+      if(res) log.success(`¡${picocolors.underline(service)} pagado con exito!`)
+      else log.error(`No se ha podido pagar ${picocolors.underline(service)}, por algún error`)
+    } catch (error) {
+      return this.#exceptionTermination(error)
+    }
+  }
+
   static async #payAll(availableBills: {service:ISupportedServices, data:BillData}[]){
     try {
+      log.info(`Pagando ${conjunctionList(availableBills.map(x=> `${picocolors.underline(x.service)}(${x.data.bill})`))}..`)
 
+      // log.success(`¡Pagado ${picocolors.underline("todo")} correctamente!`)
     } catch (error) {
       return this.#exceptionTermination(error)
     }
@@ -438,19 +449,3 @@ class Sequence {
 }
 
 await Sequence.initialize()
-
-
-// const bro = await chromium.launch({headless: false})
-// const ctx = await bro.newContext({locale:"es-ES"})
-// await ctx.route(ContextRouteURLs.DEV, route=> route.abort())
-
-//   const pag = await ctx.newPage()
-//   await pag.goto(ServicePages.Aysa)
-//   await pag.waitForLoadState()
-//   await pag.goto("https://oficinavirtual.web.aysa.com.ar/auth/index.html?#Accesos/")
-//   await pag.waitForLoadState()
-
-
-
-
-

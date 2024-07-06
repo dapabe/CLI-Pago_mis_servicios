@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
-import { ISupportedServices } from './services';
+import { ServicePages } from './service-pages';
+import { ISupportedServices, SupportedServices } from './services';
 
 type Opts = (page:Page)=> Promise<Page | null>
 
@@ -7,24 +8,54 @@ type Opts = (page:Page)=> Promise<Page | null>
  * 	For sequential steps to enter login page. \
  * 	Some pages dont need this.
  */
-export const StepsToLogin: Partial<Record<ISupportedServices,Opts>> = {
-  // [SupportedServices.enum.Aysa]: async(page)=> {
-  //   try {
-  //     //  https://github.com/microsoft/playwright/issues/27406#issuecomment-1745273458
-  //     //  Redirecting from URL A to URL B causes race condition.
-  //     //  Solution: Wait for something URL B to be visible, then proceed.
-  //     //  Not working due to many redirects
-  //     await page.goto("https://oficinavirtual.web.aysa.com.ar/auth/index.html?#Accesos/",{timeout:50000,waitUntil:"domcontentloaded"})
-  //     await page.waitForSelector("#ids-heading-1")
+export const StepsToLogin: Record<ISupportedServices,Opts> = {
+  [SupportedServices.enum.Aysa]: async(page)=> {
+    try {
+      //  https://github.com/microsoft/playwright/issues/27406#issuecomment-1745273458
+      //  Redirecting from URL A to URL B causes race condition.
+      //  Solution: Wait for something URL B to be visible, then proceed.
+      //  Not working due to many redirects
+      await page.goto(ServicePages.Aysa)
 
-  //     await expect(page.getByText("Iniciar sesión")).toBeVisible()
+      // const promisedURL = page.waitForURL()
 
-  //     return page
-  //   } catch (error) {
-  //     log.error(`Aysa: ${JSON.stringify(error,null,2)}`)
-  //     return null
-  //   }
-  // },
+      const btn1 = await page.waitForSelector('#__link1',{state:"visible"})
+        .catch(()=> {throw new Error()})
+      btn1.click()
+
+      const btn2 = await page.waitForSelector('#__button13',{state:"visible"})
+        .catch(()=> {throw new Error()})
+      btn2.click()
+
+
+      return page
+    } catch (error) {
+      console.log({error})
+      return null
+    }
+  },
+    [SupportedServices.enum.Edesur]: async(page)=>{
+      try {
+        await page.goto(ServicePages.Edesur,{waitUntil:"domcontentloaded",timeout:20000});
+        await page.waitForLoadState()
+
+        return page
+      } catch (error) {
+        console.log({error})
+        return null
+      }
+    },
+    [SupportedServices.enum.Telecentro]: async(page)=>{
+      try {
+        await page.goto(ServicePages.Telecentro,{waitUntil:"domcontentloaded",timeout:20000});
+        await page.waitForLoadState()
+
+        return page
+      } catch (error) {
+        console.log({error})
+        return null
+      }
+    }
 } as const;
 
 

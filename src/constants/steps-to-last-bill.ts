@@ -17,7 +17,7 @@ type Opts = (page:Page)=> Promise<BillData | null>
  *
  *  Either way, every service has a specific way to do it.
  *
- *  - Every `bill` must be the numeric string representation.
+ *  - Every `bill` must be the numeric string representation without dots & float numbers must be ",".
  *  - Every `expireDate` must be the string representation of a Date.
  */
 export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
@@ -49,7 +49,7 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
         const disabled = await payBtn.isDisabled()
 
         return {
-          bill: billText.split("$")[1],
+          bill: billText.split("$")[1].split(".").join(""),
           paid: disabled === true,
           expireDate: expireDateText
         }
@@ -75,14 +75,12 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
       await payBtn.waitFor()
       const disabled = await payBtn.isDisabled()
 
-
       return {
         bill: billText.split(" ")[1],
+        expireDate: expireDateText.split(" ")[1],
         paid: disabled === true,
-        expireDate: expireDateText.split(" ")[1]
       }
     } catch (error) {
-      console.log(error)
       return null
     }
   },

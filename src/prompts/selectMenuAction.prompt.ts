@@ -21,7 +21,7 @@ export async function selectMenuActionPrompt(
         value: 'next',
         hint: firstTime
           ? picocolors.yellow(
-              'Tienes que agregar al menos 1 cuenta para ver tu factura',
+              'Tienes que agregar al menos 1 cuenta para ver y pagar tu servicio',
             )
           : 'Ver ultimas facturas o si adeudo dinero de mis servicios seleccionados.',
       },
@@ -49,7 +49,7 @@ export async function selectMenuActionPrompt(
       {
         label: 'Salir',
         value: 'exit',
-        hint: 'Termina el programa.',
+        hint: 'Termina el programa',
       },
     ],
   });

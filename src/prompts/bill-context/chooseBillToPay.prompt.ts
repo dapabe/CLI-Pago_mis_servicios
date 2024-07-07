@@ -26,7 +26,7 @@ export async function chooseBillToPayPrompt(
     return `Monto a pagar: ${picocolors.underline(data.bill)} - Vencimiento: ${picocolors.yellow(data.expireDate)}`;
   };
 
-  const billAmount = availableWebsAndBill.reduce((prev,curr)=> prev + parseInt(curr.data?.bill ?? "0"), 0)
+  const billAmount = availableWebsAndBill.reduce((prev,curr)=> prev + parseFloat(curr.data?.bill ?? "0"), 0)
 
   const answer = await select<any, 'exit' | 'all' | ISupportedServices>({
     message:

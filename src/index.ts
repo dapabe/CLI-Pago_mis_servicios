@@ -15,7 +15,6 @@ import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
 import { LoginFields } from "./constants/login-fields";
 import { AppPackage, ContextRouteURLs, generatedFileName } from "./constants/random";
-import { ServicePages } from "./constants/service-pages";
 import { BillData, StepsToLastBill } from "./constants/steps-to-last-bill";
 import { StepsToLogin } from "./constants/steps-to-login";
 import { StepsToPay } from "./constants/steps-to-pay";
@@ -238,6 +237,7 @@ class Sequence {
       this.#CTX.route(invalidateResources, (route)=> route.abort())
 
       log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`} (Iniciando sesión)`)
+      log.warn("Esto puede tardar un poco.")
 			for await (const { service, fields } of currentSelection) {
 
         if(ServiceOnRevision[service]) {
@@ -347,6 +347,9 @@ class Sequence {
 	}
 
   /**
+   *  Login selectors are no that common to be replaced.
+   *  If any of the field locators fails, throw `false`.
+   *
    * @returns Wheter the login was succesful or not.
    */
 	static async #navigateToDashboard(
@@ -355,6 +358,7 @@ class Sequence {
     fieldData: Omit<IServiceLoginFields,"aliasRef">
 	): Promise<boolean> {
 		const field = LoginFields[service];
+    const maxTimeout = 60_000 // 1 min
 
 		try {
 			const userInput = page.locator(field.username);
@@ -370,19 +374,24 @@ class Sequence {
 			await submit.click();
 
       const waitLogin =async()=> {
-        try {
-          await page.waitForURL(ServiceDashboards[service])
-          return true
-        } catch (error) {
-          console.log(error)
-          log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas. \nO revise que no haya ningun error en ${picocolors.underline(ServicePages[service])}`)
-          return false
+        const start = Date.now()
+        while(Date.now() - start < maxTimeout) {
+          if (page.url().includes(ServiceDashboards[service])) {
+            return true;
+          }
+          await page.waitForTimeout(1000) //  Wait 1 second before checking again
         }
-      }
+        return false
+      };
 
-      return await waitLogin()
+      const success = await waitLogin()
+      if(!success) log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas.`)
+
+      return success
 		} catch (error) {
-      return this.#exceptionTermination(error)
+      log.error(`Ha ocurrido un error al ${picocolors.underline("tratar")} de iniciar sesión en ${picocolors.underline(service)}, \nverifique sus credenciales sean correctas o que el servicio ${page.url()} esté disponible.`)
+      note(JSON.stringify(error,null,2),"Error detallado")
+      return false
     }
 	}
 

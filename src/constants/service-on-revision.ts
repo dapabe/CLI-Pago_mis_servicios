@@ -13,6 +13,6 @@ import { ISupportedServices, SupportedServices } from "./services";
  */
 export const ServiceOnRevision: Record<ISupportedServices, boolean> = {
   [SupportedServices.enum.Aysa]: true,
-  [SupportedServices.enum.Edesur]: true,
+  [SupportedServices.enum.Edesur]: false,
   [SupportedServices.enum.Telecentro]: false,
 } as const

@@ -199,7 +199,6 @@ class Sequence {
 		this.#STEP = 3;
 		const currentSelection = getServicesWithAllFilledLogins(this.#DATA)
 		try {
-
 			const connection = await isOnline();
 			if (!connection) {
         log.error("Sin internet, volviendo al menú..")
@@ -208,11 +207,15 @@ class Sequence {
       }
 
 			if (!currentSelection.length) {
-        log.error("Sin servicios al que navegar, volviendo al menú..")
+        log.error("Sin servicio al que navegar, volviendo al menú..")
         setTimeout(async()=> await this.#waitForUserMenuAction(), 2000);
         return;
       }
 
+      const proceed = async()=> {
+        log.info("Buscando ultima factura.. (Esto puede tardar según la cantidad de servicios)")
+        await this.#checkForBills()
+      }
 
 			/**
        *  [WIP]
@@ -229,7 +232,7 @@ class Sequence {
       // console.log(previousLoop);
 
 			// const isEqualToPreviusLoop = previousLoop.every(Boolean);
-			// if (isEqualToPreviusLoop || this.#BROWSER) return await this.#checkForBills()
+			if (this.#BROWSER) return await this.#checkForBills()
 
 			this.#BROWSER = await chromium.launch({ headless: false });
 			this.#CTX = await this.#BROWSER.newContext({locale: "es-ES"});
@@ -237,36 +240,17 @@ class Sequence {
       this.#CTX.route(invalidateResources, (route)=> route.abort())
 
       log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`} (Iniciando sesión)`)
-      log.warn("Esto puede tardar un poco.")
-			for await (const { service, fields } of currentSelection) {
+      log.warning("Esto puede tardar un poco.")
 
-        if(ServiceOnRevision[service]) {
-          this.#CURRENT_WEBS.set(service, null);
-          break
+      const results = await Promise.allSettled(currentSelection.map(x=> this.#validateService(x.service, x.fields)))
+      for (const res of results) {
+        if(res.status === "fulfilled") {
+          console.log(res.value.service)
+          this.#CURRENT_WEBS.set(res.value.service, res.value.data)
         }
-
-        const page = await this.#isPageAvailable(service);
-				if (!page) {
-          this.#CURRENT_WEBS.set(service, null);
-          break
-        }
-
-        const goodResponse = await this.#navigateToDashboard(page, service, fields);
-        if(!goodResponse) {
-          this.#CURRENT_WEBS.set(service, null);
-          break
-        };
-        this.#CURRENT_WEBS.set(service, { page, dashboard: ServiceDashboards[service] });
-			}
-
-      if(!this.#CURRENT_WEBS.size){
-        log.warning(`No se hay servicios seleccionados disponibles a los que navegar`)
-        setTimeout(async() => await this.#waitForUserMenuAction(), 2000);
-        return;
       }
 
-      log.info("Buscando ultima factura.. (Esto puede tardar según la cantidad de servicios)")
-      await this.#checkForBills()
+      await proceed()
 		} catch (error) {
       this.#exceptionTermination(error)
     }
@@ -333,6 +317,23 @@ class Sequence {
 	}
 
 	//  Utilities section
+
+  static async #validateService(service: ISupportedServices, fields: Omit<IServiceLoginFields,"aliasRef">){
+    try {
+      const defaultResult = {service, data: null}
+      if(ServiceOnRevision[service]) return defaultResult
+
+      const page = await this.#isPageAvailable(service);
+      if (!page) return defaultResult
+
+      const goodResponse = await this.#navigateToDashboard(page, service, fields);
+      if(!goodResponse) return defaultResult
+
+      return {service, data: {page, dashboard: ServiceDashboards[service]}}
+    } catch (error) {
+      return this.#exceptionTermination(error)
+    }
+  }
 
   static async #isPageAvailable(
 		service: ISupportedServices,

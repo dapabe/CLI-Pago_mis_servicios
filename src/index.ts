@@ -282,7 +282,7 @@ class Sequence {
 	static async #checkForBills() {
 		this.#STEP = 4;
     try {
-      if(!this.#CURRENT_WEBS) throw Error("NO_CURRENT_WEBS")
+      if(!this.#CURRENT_WEBS) throw Error("NO_CURRENT_WEBS")  //  If code is well written this shouldnt happen.
       const bills = new Map<ISupportedServices,BillData | null>()
       for (const [service, value] of [...this.#CURRENT_WEBS]) {
         if(!value) {
@@ -445,7 +445,7 @@ class Sequence {
     this.#closeWeb()
     outro(
       picocolors.green(
-        "✨ Gracias por utilizar esta herramienta, considera hacer un aporte :)",
+        "✨ Gracias por utilizar esta herramienta, considera hacer un aporte mejorandola o donando :]",
       ),
     );
    return exit(0);

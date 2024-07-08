@@ -1,32 +1,41 @@
 import { DesignError } from '@/utils/errors/design.error';
-import { log } from '@clack/prompts';
+import { normalizeNumber } from '@/utils/random';
 import { Page } from '@playwright/test';
 import { ISupportedServices, SupportedServices } from './services';
 
 export type BillData = {
   bill: number;
-  paid: boolean
   expireDate: string
+  paid: boolean
 }
 
-type Opts = (page:Page)=> Promise<BillData | null>
+type Opts = (page:Page)=> Promise<BillData | string>
 
 /**
- * 	Check options.
+ * 	## Please read and check options
  *
  *  The best way to get bills is to store the dashboard url \
  *  go to the bills page explicically or follow steps.
  *
  *  Either way, every service has a specific way to do it.
  *
- *  - Every `bill` must be the numeric string representation without dots & float numbers must be ",".
+ *  ## Tips
+ *  - Transform bill amount with *normalizeNumber()*
  *  - Every `expireDate` must be the string representation of a Date.
  *
- *  If any of the selectors are not found, asume the designed has changed or \
- *  is an expected behaviour of the dynamic data, on this case custom logic has \
- *  to be implemented, see **Telecentro**.
+ *  ## Keep in mind
+ *  - Current page URL is the user dashboard.
+ *  - Returned data from `Promise.allSettled` has to be the same order as `BillData` type.
+ *  - The data is dynamic thus it can or will be changed.
+ *  - If none of the selectors were found, asume the design has changed.
+ *  - Some service pages are more consistent to display last bill than others, \
+ *  them will either display the last paid bill but not the pay button if said \
+ *  service is already paid.
+ *  - Upon paying every page has a different feedback method, for example they \
+ *  will either redirect or show a popup. See `Telecentro`
+ *  - If returned data is `typeof string` then is the error reason.
  *
- *  @example Some services wont display pay button or the bill upon paying.
+ *
  */
 export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
   [SupportedServices.enum.Aysa]: async page => {
@@ -41,30 +50,29 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
   },
   [SupportedServices.enum.Edesur]: async page => {
     try {
-        const bills_page = "https://ov.edesur.com.ar/pagos-y-facturas"
-        await page.goto(bills_page)
-
-        const [billAmount, expireText, paidBtn] = await Promise.all([
+        const res = await Promise.all([
           getLocatorText(page)(".font-size-18px-to-rem.mb-0.text-align-center.text-align-end"),
           getLocatorText(page)(".font-size-18px-to-rem.mb-0.text-align-start"),
           getDisabledPayBtn(page)("#dropdownMenuButton")
         ])
 
-        if(!billAmount || !expireText || paidBtn === null){
+        if(res.every(x=> x === null)) throw new DesignError()
+
+
+        if(!res[0] || !res[1] || res[2] === null){
           throw new DesignError()
         }
 
-        const bill = parseFloat(billAmount?.split("$")[1].split(".").join("") ?? "0")
+        const bill = parseFloat(normalizeNumber(res[0] ?? "0"))
 
 
         return {
           bill,
-          expireDate: expireText,
-          paid: paidBtn,
+          expireDate: res[1],
+          paid: res[2],
         }
     } catch (e) {
-      log.warning(`Error al obtener monto a pagar [Edesur]: ${(e as Error).message}`)
-      return null
+      return (e as Error).message
     }
   },
   [SupportedServices.enum.Telecentro]: async(page)=>{
@@ -72,20 +80,23 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
       const bills_page = "https://telecentro.com.ar/sucursal-virtual/facturacion"
       await page.goto(bills_page)
 
-      const [billAmount, expireText, paidBtn] = await Promise.all([
+      const res = await Promise.all([
         getLocatorText(page)(".hidden .flex.flex-col .text-3xl.font-light"),
         getLocatorText(page)(".hidden .flex.flex-col .text-font-primary-400.text-base.font-light"),
         getDisabledPayBtn(page)(".hidden button[type=button]")
       ])
+      console.log(res)
+
+      if(res.every(x=> x === null)) throw new DesignError()
 
       //  Paid btn wont display if has already paid, but the bill amount will.
-      if(!billAmount && paidBtn === null || !expireText) {
+      if(!res[0] && res[1] === null || !res[2]) {
         throw new DesignError()
       }
 
-      const bill = parseFloat(billAmount?.split(" ")[1] ?? "0")
-      const expireDate = expireText.split(" ")[1]
-      const paid = paidBtn === true || bill === 0
+      const bill = parseFloat(normalizeNumber(res[0] ?? "0"))
+      const expireDate = res[1]!.split(" ")[1]
+      const paid = res[2] === null || bill === 0
 
       return {
         bill,
@@ -93,8 +104,7 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
         paid,
       }
     } catch (e) {
-      log.warning(`Error al obtener monto a pagar [Telecentro]: ${(e as Error).message}`)
-      return null
+      return (e as Error).message
     }
   },
 };
@@ -107,10 +117,11 @@ const getLocatorText = (page: Page) => async (selector: string)=>{
 
 const getDisabledPayBtn = (page: Page) => async (selector: string)=>{
   try {
-    const btn = page.locator(selector)
+    const btn = page.locator(selector).first()
     await btn.waitFor()
     return await btn.isDisabled()
   } catch (_) {
+    console.log(_)
    return null
   }
 }

@@ -1,4 +1,5 @@
 import { IStoredPaymentMethod } from '@/schemas/paymentMethod.schema';
+import { log } from '@clack/prompts';
 import { Page } from '@playwright/test';
 import { PayFields } from './pay-fields';
 import { ISupportedServices, SupportedServices } from './services';
@@ -56,7 +57,7 @@ export const StepsToPay: Record<ISupportedServices,Opts> = {
 
         return true
       } catch (error) {
-        console.log({error})
+        log.error(`error ${JSON.stringify(error)}`)
         return false
       }
     },

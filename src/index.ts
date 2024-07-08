@@ -212,27 +212,23 @@ class Sequence {
         return;
       }
 
-      const proceed = async()=> {
-        log.info("Buscando ultima factura.. (Esto puede tardar según la cantidad de servicios)")
-        await this.#checkForBills()
+      const proceed = async () => {
+        log.info("Buscando ultima factura..")
+        return await this.#checkForBills()
       }
 
 			/**
-       *  [WIP]
        * 	When user navigates to [Step 2] from
 			 * 	[Step 4] this [Step 3] should resolve
-       * 	only when currentSelection is equal to CURRENT_WEBS
-       * 	else should navigate to the new selected webs.
-       *  This is to not open new context nor pages.
+       * 	only when CURRENT_WEBS is already defined
+       *  or is defined after validating current services.
+       *
+       *  This should not open new context nor pages.
        *
        *  IDK what to do if any of the services in the new loop are not available.
       */
 
-      // const previousLoop = currentSelection.filter(x=> this.#CURRENT_WEBS.has(x.service));
-      // console.log(previousLoop);
-
-			// const isEqualToPreviusLoop = previousLoop.every(Boolean);
-			if (this.#BROWSER) return await this.#checkForBills()
+			if (this.#BROWSER) return await proceed()
 
 			this.#BROWSER = await chromium.launch({ headless: false });
 			this.#CTX = await this.#BROWSER.newContext({locale: "es-ES"});
@@ -245,12 +241,11 @@ class Sequence {
       const results = await Promise.allSettled(currentSelection.map(x=> this.#validateService(x.service, x.fields)))
       for (const res of results) {
         if(res.status === "fulfilled") {
-          console.log(res.value.service)
           this.#CURRENT_WEBS.set(res.value.service, res.value.data)
         }
       }
 
-      await proceed()
+      return await proceed()
 		} catch (error) {
       this.#exceptionTermination(error)
     }
@@ -263,23 +258,28 @@ class Sequence {
    *
 	 *  @description Step 4
 	 */
-	static async #checkForBills() {
+	static async #checkForBills():  Promise<void> {
 		this.#STEP = 4;
     try {
-      if(!this.#CURRENT_WEBS) throw Error("NO_CURRENT_WEBS")  //  If code is well written this shouldnt happen.
+      if(!this.#CURRENT_WEBS) throw Error("NO_CURRENT_WEBS")  //  If code is well written this shouldn't happen.
       const bills = new Map<ISupportedServices,BillData | null>()
       for (const [service, value] of [...this.#CURRENT_WEBS]) {
-        if(!value) {
+        if(value === null) {
           bills.set(service, value)
-          break
+          break;
         }
         const data = await StepsToLastBill[service](value.page)
-
-        bills.set(service, data)
-        if(data) await value.page.goto(value.dashboard)
+        if(typeof data === "string") {
+          log.warning(`Error al obtener monto a pagar [${picocolors.underline(service)}]: ${data}`)
+        } else {
+          bills.set(service, data)
+          if(value.page.url() !== value.dashboard) {
+            await value.page.goto(value.dashboard)
+          }
+        }
       }
 
-      await this.#waitForActionInBillSelection(bills)
+      return await this.#waitForActionInBillSelection(bills)
     } catch (error) {
       return this.#exceptionTermination(error)
     }
@@ -290,10 +290,10 @@ class Sequence {
 	 *
 	 * @description Step 5 - Final
 	 */
-	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices,BillData | null>): Promise<void> {
+	static async #waitForActionInBillSelection(currentBills:Map<ISupportedServices, BillData | null>): Promise<void> {
 		this.#STEP = 5;
 		try {
-      const availableBills = [...currentBills].map(([service, bill])=>({service, data:bill, onRevision: ServiceOnRevision[service]}))
+      const availableBills = [...currentBills].map(([service, data])=>({service, data, onRevision: ServiceOnRevision[service]}))
       const answer = await chooseBillToPayPrompt(availableBills);
       switch (answer) {
         case 'all':
@@ -320,7 +320,7 @@ class Sequence {
 
   static async #validateService(service: ISupportedServices, fields: Omit<IServiceLoginFields,"aliasRef">){
     try {
-      const defaultResult = {service, data: null}
+      const defaultResult = {service, data: null};
       if(ServiceOnRevision[service]) return defaultResult
 
       const page = await this.#isPageAvailable(service);
@@ -359,7 +359,7 @@ class Sequence {
     fieldData: Omit<IServiceLoginFields,"aliasRef">
 	): Promise<boolean> {
 		const field = LoginFields[service];
-    const maxTimeout = 60_000 // 1 min
+    const maxTimeout = 40_000 // 40 secs
 
 		try {
 			const userInput = page.locator(field.username);
@@ -386,7 +386,7 @@ class Sequence {
       };
 
       const success = await waitLogin()
-      if(!success) log.warning(`Ha ocurrido un error al iniciar sesión, revise que las \ncredenciales de ${picocolors.underline(service)} sean correctas.`)
+      if(!success) log.warning(`Ha ocurrido un error al iniciar sesión en ${picocolors.underline(service)}\n, revise sus credenciales.`)
 
       return success
 		} catch (error) {
@@ -446,7 +446,7 @@ class Sequence {
     this.#closeWeb()
     outro(
       picocolors.green(
-        "✨ Gracias por utilizar esta herramienta, considera hacer un aporte mejorandola o donando :]",
+        "✨ Gracias por utilizar esta herramienta, considera hacer \nun aporte añadiendo servicios o donando para que siga creciendo :]",
       ),
     );
    return exit(0);

@@ -1,7 +1,6 @@
 import { ISupportedServices } from '@/constants/services';
 import { IServiceLoginFields } from '@/schemas/serviceLoginField.schema';
 import { IUserData } from '@/schemas/userData.schema';
-import { ZodError } from 'zod';
 
 
 export function getServicesWithFilledLogins(userData:IUserData){
@@ -20,10 +19,16 @@ export function conjunctionList(s: string[]) {
   return new Intl.ListFormat('es-ES', { type: 'conjunction' }).format(s);
 }
 
-export function mapZodErrors(err: ZodError){
-  return conjunctionList(err.issues.map(x=>x.message))
+/**
+ *  Only works for PESOS ARGENTINOS
+ */
+export function currencyFormat(n:number){
+  return new Intl.NumberFormat("es-AR",{currency:"ARS",style:"currency"}).format(n)
 }
 
-// export function transformBillAmount(n:string){
-//   return n.split(".").
-// }
+export function normalizeNumber(n:string){
+  return n
+    .replace(/[^\d,.-]/g, '')  //  Removes anything not related to a number.
+    .replace(/\./g, '') //  Removes dots from thousands
+    .replace(/,/, '.')  //  Replace comma with dot for float number separator
+}

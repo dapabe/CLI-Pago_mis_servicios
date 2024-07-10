@@ -36,7 +36,7 @@ export const StepsToLogin: Record<ISupportedServices,Opts> = {
   },
     [SupportedServices.enum.Edesur]: async(page)=>{
       try {
-        await page.goto(ServicePages.Edesur,{waitUntil:"domcontentloaded",timeout:20000});
+        await page.goto(ServicePages.Edesur,{waitUntil:"domcontentloaded"});
         await page.waitForLoadState()
 
         return page
@@ -47,7 +47,7 @@ export const StepsToLogin: Record<ISupportedServices,Opts> = {
     },
     [SupportedServices.enum.Telecentro]: async(page)=>{
       try {
-        await page.goto(ServicePages.Telecentro,{waitUntil:"domcontentloaded",timeout:20000});
+        await page.goto(ServicePages.Telecentro,{waitUntil:"domcontentloaded"});
         await page.waitForLoadState()
 
         return page

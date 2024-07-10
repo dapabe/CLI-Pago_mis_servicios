@@ -1,26 +1,78 @@
 import { IStoredPaymentMethod } from '@/schemas/paymentMethod.schema';
-import { log } from '@clack/prompts';
+import { InvalidPayMethodError } from '@/utils/errors/invalid-paymethod.error';
+import { conjunctionList } from '@/utils/random';
 import { Page } from '@playwright/test';
+import picocolors from 'picocolors';
+import { CardBrand, ICardBrand } from './card';
 import { PayFields } from './pay-fields';
 import { ISupportedServices, SupportedServices } from './services';
 
-type Opts = (page: Page, data: IStoredPaymentMethod)=> Promise<boolean>
+type Opts = (page: Page, data: IStoredPaymentMethod)=> Promise<null | string>
 
 
 export const StepsToPay: Record<ISupportedServices,Opts> = {
   [SupportedServices.enum.Aysa]: async(page)=>{
 
-    return false
+    return null
   },
-  [SupportedServices.enum.Edesur]: async(page)=>{
-    return false
+  [SupportedServices.enum.Edesur]: async(page, data)=>{
+    try {
+      await page.goto("https://ov.edesur.com.ar/pagos-y-facturas/pagar?typePayment=UF&estado=pagar")
+      const availableCards = new Map<ICardBrand, string>([
+        [CardBrand.enum.Visa, "[id='31']"],
+        [CardBrand.enum.Mastercard, "[id='105']"],
+        [CardBrand.enum.Maestro, "[id='106']"]
+      ])
+
+      if(data.cardBrand === null) {
+        const cards = [...availableCards].map(([x])=> picocolors.underline(x))
+        throw new Error(`Sin marca de tarjeta, posibles: ${conjunctionList(cards)}`)
+      }
+
+      const checkbox = await page.waitForSelector(availableCards.get(data.cardBrand)!)
+      await checkbox.check()
+
+      const selectMethod = page.locator(".card-body button[type=button].btn-light")
+      //  Needed, the form validates if the actions are instant, probably
+      //  checking bots, hehe
+      setTimeout(async() => {
+        await selectMethod.click()
+      }, 5000);
+      const frame = page.frameLocator(".pagos-frame").first().owner()
+      const payUrl = await frame.getAttribute("src")
+
+      if(!payUrl) throw new Error("No se ha podido encontrar el bloque de pago")
+      await page.goto(payUrl)
+
+      const cardNumber = await page.waitForSelector(PayFields.Edesur.frontNumber)
+      await cardNumber.fill(data.frontNumber)
+
+      const expireDate = await page.waitForSelector(PayFields.Edesur.expireDate)
+      await expireDate.fill(data.expireDate)
+
+      const cardHolder = await page.waitForSelector(PayFields.Edesur.fullName)
+      await cardHolder.fill(data.fullName)
+
+      const securityNumber = await page.waitForSelector(PayFields.Edesur.backNumber)
+      await securityNumber.fill(data.backNumber.split("/").join(""))
+
+      const submit = await page.waitForSelector(PayFields.Edesur.submit)
+      //  form btn is disabled unless an interaction event triggers
+      await submit.focus()
+      await submit.dblclick()
+
+      await page.waitForURL("https://ov.edesur.com.ar/mi-cuenta?pagoPrisma=true").catch(()=>{
+        throw new InvalidPayMethodError()
+      })
+
+      return null
+    } catch (error) {
+      return(error as Error).message
+    }
   },
   [SupportedServices.enum.Telecentro]: async(page, data)=>{
     try {
-        const payPage = "https://telecentro.com.ar/sucursal-virtual/facturacion/pagar"
-
-        await page.goto(payPage)
-        await page.waitForLoadState()
+        await page.goto("https://telecentro.com.ar/sucursal-virtual/facturacion/pagar")
 
         const link = page.getByText(" Tarjeta crédito / débito ")
         await link.waitFor()
@@ -53,12 +105,13 @@ export const StepsToPay: Record<ISupportedServices,Opts> = {
          *  i could not try this, in practice the next promise should enter the catch
          *  if `status != APROBADO`
          */
-        await page.waitForURL("https://telecentro.com.ar/?status=APROBADO")
+        await page.waitForURL("https://telecentro.com.ar/?status=APROBADO").catch(()=>{
+          throw new InvalidPayMethodError()
+        })
 
-        return true
+        return null
       } catch (error) {
-        log.error(`error ${JSON.stringify(error)}`)
-        return false
+        return(error as Error).message
       }
     },
   };

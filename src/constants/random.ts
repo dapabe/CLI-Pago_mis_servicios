@@ -13,6 +13,6 @@ export const RequiredServiceFieldAmount = Object.keys(
 
 
 export const ContextRouteURLs = {
-  PROD: "**/*.{png,jpg,jpeg,css}",
-  DEV: "**/*.{png,jpg,jpeg}"
+  PROD: "**/*.{png,jpg,jpeg,svg,gif,woff,ico,icon,css}",
+  DEV: "**/*.{png,jpg,jpeg,svg,gif,woff,ico,icon}"
 } as const

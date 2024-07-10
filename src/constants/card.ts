@@ -12,6 +12,7 @@ export const CardType = z.enum([
 export const CardBrand = z.enum([
   'Visa',
   'Mastercard',
+  "Maestro",
   'American Express',
   'Discover',
   'JCB',

@@ -19,11 +19,11 @@ export const PayFields: Record<ISupportedServices,CardFieldsSelectors> = {
     submit: "button[type=submit]",
   },
   [SupportedServices.enum.Edesur]: {
-    fullName: "",
-    frontNumber: "",
-    expireDate: "",
-    backNumber: "",
-    submit: "",
+    fullName: "#cardHolderName",
+    frontNumber: "#cardNumber",
+    expireDate: "#cardExpiration",
+    backNumber: "#securityCode",
+    submit: "button[type=submit]",
   },
   [SupportedServices.enum.Aysa]: {
     fullName: "",

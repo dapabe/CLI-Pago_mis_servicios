@@ -10,3 +10,11 @@ export const TranslatedInput= {
   storedName: 'Nombre asociado a tu tarjeta',
   username: 'Usuario',
 } as const;
+
+export const TranslatedLocator = {
+ bill: {
+  0: "Monto a pagar",
+  1: "Fecha de vencimiento",
+  2: "Botón de pago"
+ }
+} as const

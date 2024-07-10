@@ -1,6 +1,7 @@
 import { ISupportedServices } from '@/constants/services';
 import { IServiceLoginFields } from '@/schemas/serviceLoginField.schema';
 import { IUserData } from '@/schemas/userData.schema';
+import { IBillContext } from '@/types/generic';
 
 
 export function getServicesWithFilledLogins(userData:IUserData){
@@ -31,4 +32,11 @@ export function normalizeNumber(n:string){
     .replace(/[^\d,.-]/g, '')  //  Removes anything not related to a number.
     .replace(/\./g, '') //  Removes dots from thousands
     .replace(/,/, '.')  //  Replace comma with dot for float number separator
+}
+
+
+export function sortBills(a: IBillContext, b: IBillContext){
+  if(!a.onRevision && b.onRevision) return -1
+  if(!a.paid && b.paid) return -1
+  return 1
 }

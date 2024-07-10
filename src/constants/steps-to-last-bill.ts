@@ -1,5 +1,8 @@
+import { StepsToLastBillResults } from '@/types/step-results';
 import { DesignError } from '@/utils/errors/design.error';
+import { LocatorError } from '@/utils/errors/locator.error';
 import { normalizeNumber } from '@/utils/random';
+import { TranslatedLocator } from '@/utils/translation';
 import { Page } from '@playwright/test';
 import { ISupportedServices, SupportedServices } from './services';
 
@@ -50,26 +53,33 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
   },
   [SupportedServices.enum.Edesur]: async page => {
     try {
-        const res = await Promise.all([
+        const res = await Promise.allSettled([
           getLocatorText(page)(".font-size-18px-to-rem.mb-0.text-align-center.text-align-end"),
           getLocatorText(page)(".font-size-18px-to-rem.mb-0.text-align-start"),
           getDisabledPayBtn(page)("#dropdownMenuButton")
         ])
 
-        if(res.every(x=> x === null)) throw new DesignError()
+        const cache: StepsToLastBillResults = [] as any
+        for (let i = 0; i < res.length; ++i) {
+          const settledRes = res[i]
+          if(settledRes.status === "fulfilled") cache.push(settledRes.value)
+          else throw new LocatorError(TranslatedLocator.bill[i])
+        }
+
+        if(cache.every(x=> x === null)) throw new DesignError()
 
 
-        if(!res[0] || !res[1] || res[2] === null){
+        if(!cache[0] || !cache[1] || cache[2] === null){
           throw new DesignError()
         }
 
-        const bill = parseFloat(normalizeNumber(res[0] ?? "0"))
+        const bill = parseFloat(normalizeNumber(cache[0] ?? "0"))
 
 
         return {
           bill,
-          expireDate: res[1],
-          paid: res[2],
+          expireDate: cache[1],
+          paid: cache[2],
         }
     } catch (e) {
       return (e as Error).message
@@ -80,23 +90,30 @@ export const StepsToLastBill:  Record<ISupportedServices,Opts> = {
       const bills_page = "https://telecentro.com.ar/sucursal-virtual/facturacion"
       await page.goto(bills_page)
 
-      const res = await Promise.all([
+      const res = await Promise.allSettled([
         getLocatorText(page)(".hidden .flex.flex-col .text-3xl.font-light"),
         getLocatorText(page)(".hidden .flex.flex-col .text-font-primary-400.text-base.font-light"),
         getDisabledPayBtn(page)(".hidden button[type=button]")
       ])
-      console.log(res)
 
-      if(res.every(x=> x === null)) throw new DesignError()
+      const cache: StepsToLastBillResults = [] as any
+      for (let i = 0; i < res.length; ++i) {
+        const settledRes = res[i]
+        if(settledRes.status === "fulfilled") cache.push(settledRes.value)
+        else throw new LocatorError(TranslatedLocator.bill[i])
+      }
+
+      if(cache.every(x=> x === null)) throw new DesignError()
+
 
       //  Paid btn wont display if has already paid, but the bill amount will.
-      if(!res[0] && res[1] === null || !res[2]) {
+      if(!cache[0] && cache[1] === null || !cache[2]) {
         throw new DesignError()
       }
 
-      const bill = parseFloat(normalizeNumber(res[0] ?? "0"))
-      const expireDate = res[1]!.split(" ")[1]
-      const paid = res[2] === null || bill === 0
+      const bill = parseFloat(normalizeNumber(cache[0] ?? "0"))
+      const expireDate = cache[1]!.split(" ")[1]
+      const paid = cache[2] === null || bill === 0
 
       return {
         bill,
@@ -117,11 +134,10 @@ const getLocatorText = (page: Page) => async (selector: string)=>{
 
 const getDisabledPayBtn = (page: Page) => async (selector: string)=>{
   try {
-    const btn = page.locator(selector).first()
-    await btn.waitFor()
+    const btn = await page.waitForSelector(selector)
     return await btn.isDisabled()
-  } catch (_) {
-    console.log(_)
+  } catch (e) {
+    // log.warn(`${(e as any).name}: '${selector}'`)
    return null
   }
 }

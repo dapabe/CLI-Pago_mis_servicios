@@ -1,25 +1,25 @@
 import { SafeExitMessage } from '@/constants/random.js';
 import { ISupportedServices } from '@/constants/services';
-import { BillData } from '@/constants/steps-to-last-bill';
+import { IBillContext } from '@/types/generic';
 import { currencyFormat } from '@/utils/random';
 import { cancel, isCancel, select } from '@clack/prompts';
 import picocolors from 'picocolors';
 import { exit } from 'process';
 
-type BillContext = {service:ISupportedServices, data: BillData | null, onRevision: boolean}
 
 
 export async function chooseBillToPayPrompt(
-  availableWebsAndBill: BillContext[],
+  currentBills: IBillContext[],
+  filteredBills: IBillContext[]
 ) {
-  const labelStatus = ({service,data,onRevision}: BillContext) => {
+  const labelStatus = ({service,data,onRevision}: IBillContext) => {
     if (onRevision) return picocolors.red(service);
     if (!data) return picocolors.yellow(service)
     if (data.paid) return picocolors.green(service);
     return service;
   };
 
-  const hintStatus = ({data,onRevision}: BillContext) => {
+  const hintStatus = ({data,onRevision}: IBillContext) => {
     if (onRevision) return picocolors.red("En revisión")
     if (!data) return 'Ha ocurrido un error al buscar datos de la ultima factura'
     if (data.paid)
@@ -27,7 +27,10 @@ export async function chooseBillToPayPrompt(
     return `Monto a pagar: ${picocolors.underline(currencyFormat(data.bill))} - Vencimiento: ${picocolors.yellow(data.expireDate)}`;
   };
 
-  const billAmount = currencyFormat(availableWebsAndBill.reduce((prev,curr)=> prev + parseFloat(curr.data?.bill.toString() ?? "0"), 0))
+  const billAmount = currencyFormat(
+    filteredBills
+    .reduce((prev,curr)=> prev + parseFloat(curr.data?.bill.toString() ?? "0"), 0)
+  )
 
   const answer = await select<any, 'exit' | 'all' | ISupportedServices>({
     message:
@@ -44,7 +47,7 @@ export async function chooseBillToPayPrompt(
         value: 'all',
         hint: billAmount ? 'Paga todas los impuestos y facturas pendientes con los respectivos metodos de pago' : "",
       },
-      ...availableWebsAndBill.map((ctx) => ({
+      ...currentBills.map((ctx) => ({
         label: labelStatus(ctx),
         value: ctx.service,
         hint: hintStatus(ctx),

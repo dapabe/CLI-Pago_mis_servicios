@@ -15,7 +15,7 @@ export async function addPaymentMethodPrompt(
   const group = await prompt.group(
     {
       cardType:()=> prompt.select({
-        message:"Tipo de targeta",
+        message:"Tipo de tarjeta",
         initialValue: payMethod?.cardType ?? StoredPaymentMethodManager.getLastSchema().shape.cardType._def.defaultValue(),
         options:Object.values(CardType.enum).map(x=>({
           label: x,
@@ -24,7 +24,7 @@ export async function addPaymentMethodPrompt(
         }))
       }),
       cardBrand:()=> prompt.select({
-        message:"Marca de targeta (Opcional)",
+        message:"Marca de tarjeta (Opcional)",
         initialValue: payMethod?.cardBrand ?? null,
         options: [
           {
@@ -48,7 +48,7 @@ export async function addPaymentMethodPrompt(
         }),
       frontNumber: () =>
         prompt.text({
-          message: 'Número de la targeta (Sin espacios)',
+          message: 'Número de la tarjeta (Sin espacios)',
           placeholder: '0000 0000 0000 0000',
           initialValue: payMethod?.frontNumber ?? '',
           validate: (x) =>

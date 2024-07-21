@@ -1,4 +1,3 @@
+type SoN = string | null;
 
-type SoN = string | null
-
-export type StepsToLastBillResults = [SoN, SoN, boolean | null]
+export type StepsToLastBillResults = [SoN, SoN, boolean | null];

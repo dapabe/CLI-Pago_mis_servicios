@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@clack/prompts": "0.7.0",
+		"@msgpack/msgpack": "3.0.0-beta2",
 		"@playwright/test": "^1.45.0",
 		"crypto-js": "4.2.0",
 		"is-online": "10.0.0",

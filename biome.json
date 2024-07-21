@@ -1,24 +1,23 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
 	"files": {
-		"include": ["./src/**/*.{js,ts}", "tests/**/*.spec.ts"],
-		"ignore": ["node_modules/**", "dist/**"]
+		"include": ["./src/**/*.{js,ts}", "./tests/**/*.ts"]
 	},
 	"organizeImports": {
 		"enabled": true
 	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
-		"lineEnding": "lf"
-	},
 	"linter": {
 		"enabled": true,
-
 		"rules": {
 			"recommended": true,
 			"complexity": {
 				"noStaticOnlyClass": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off"
 			}
 		}
 	}

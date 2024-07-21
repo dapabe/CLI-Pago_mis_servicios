@@ -2,12 +2,12 @@
  * @type {import("@commitlint/cli/lib/types").CliFlags}
  */
 module.exports = {
-  extends: ['@commitlint/config-conventional'],
-  rules: {
-    'subject-case': [
-      0,
-      'never',
-      ['sentence-case', 'start-case', 'pascal-case', 'upper-case'],
-    ],
-  },
+	extends: ["@commitlint/config-conventional"],
+	rules: {
+		"subject-case": [
+			0,
+			"never",
+			["sentence-case", "start-case", "pascal-case", "upper-case"],
+		],
+	},
 };

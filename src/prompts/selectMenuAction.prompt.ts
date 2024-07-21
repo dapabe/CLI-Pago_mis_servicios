@@ -16,19 +16,19 @@ export async function selectMenuActionPrompt(
     options: [
       {
         label: firstTime
-          ? picocolors.red('Ir a mis páginas')
-          : 'Ir a mis páginas',
+          ? picocolors.red('Ver mis servicios')
+          : 'Ver mis servicios',
         value: 'next',
         hint: firstTime
           ? picocolors.yellow(
-              'Tienes que agregar al menos 1 cuenta para ver y pagar tu servicio',
+              'Tienes que agregar al menos 1 cuenta para ver y pagar tu servicios',
             )
-          : 'Ver ultimas facturas o si adeudo dinero de mis servicios seleccionados.',
+          : 'Ver ultimas cuentas pagadas o a pagar',
       },
       {
         label: 'Mis cuentas',
         value: 'serviceFields',
-        hint: 'Añade o modifica tus cuentas.',
+        hint: 'Añade o modifica tus cuentas',
       },
       {
         label: noPayMethods
@@ -39,7 +39,7 @@ export async function selectMenuActionPrompt(
       },
       {
         label: `Modo seguro: ${userData.secureMode ? picocolors.green("Activado") : `${picocolors.red("Desactivado")} - ${picocolors.yellow("[Ten cuidado a quien muestras tus datos]")}`}`,
-        value:"secureMode",
+        value: "secureMode",
         hint: "Oculta o no el valor de los campos con información sensible"
       },
       {

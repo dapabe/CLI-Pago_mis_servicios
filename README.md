@@ -71,4 +71,4 @@ npm run dev
 
 ### [Licencia](#licence)
 
-Este proyecto está bajo la Licencia Apache 2.0. Ver el archivo [LICENCE](./LICENCE.txt) para mas detalles.
+Este proyecto está bajo la Licencia Apache 2.0. Ver el archivo [LICENCE](./LICENCE) para mas detalles.

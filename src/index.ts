@@ -46,8 +46,9 @@ nodeCleanup((exitCode) =>
 );
 
 class Sequence {
+  static #DEV_MODE = process.env.NODE_ENV === "dev"
 	static #DEBUG_MODE =
-		process.argv.includes("--debug") && process.env.NODE_ENV === "dev";
+		this.#DEV_MODE && process.argv.includes("--debug");
 
 	static #_STEP = 0;
 	static get #STEP() {
@@ -235,8 +236,7 @@ class Sequence {
 			this.#BROWSER = await chromium.launch({ headless: false});
 			this.#CTX = await this.#BROWSER.newContext({locale: "es-AR"});
       this.#CTX.setDefaultNavigationTimeout(60_000)
-      const invalidateResources = process.env.NODE_ENV === "dev" ? ContextRouteURLs.DEV: ContextRouteURLs.PROD
-      this.#CTX.route(invalidateResources, (route)=> route.abort())
+      this.#CTX.route(this.#DEV_MODE ? ContextRouteURLs.DEV : ContextRouteURLs.PROD, (route)=> route.abort())
 
       log.info(`Validando que ${currentSelection.length > 1 ? `tus ${currentSelection.length} servicios esten disponibles..` : `tu servicio esté disponible..`} (Iniciando sesión)`)
       log.warning("Esto puede tardar un poco.")
@@ -309,14 +309,12 @@ class Sequence {
         case 'all':
           if(!billsToPay.length) return await this.#waitForActionInBillSelection(currentBills);
           await Promise.allSettled(billsToPay.map(x=> this.#payService(x.service)))
-
           return await this.#waitForActionInBillSelection(currentBills);
         case 'exit':
           return await this.#waitForUserMenuAction();
         default:
           const current = billsToPay.find(x=> x.service === answer)
-          if(!current) return await this.#waitForActionInBillSelection(currentBills);
-          if(!current.data?.paid) await this.#payService(answer)
+          if(current && !current.data?.paid) await this.#payService(answer)
           return await this.#waitForActionInBillSelection(currentBills);
         }
 		} catch (error) {
@@ -439,15 +437,15 @@ class Sequence {
 		}
 	}
 
-	static #exceptionTermination(e: unknown) {
-    this.#closeWeb()
+	static async #exceptionTermination(e: unknown) {
+    await this.#closeWeb()
 		cancel(
 			`Ha ocurrido un error no manejado en el [Step ${this.#STEP}]: \n${(e as Error).message}`,
 		);
 		return exit(0);
 	}
-  static #outroTermination(){
-    this.#closeWeb()
+  static async #outroTermination(){
+    await this.#closeWeb()
     outro(
       picocolors.green(
         "✨ Gracias por utilizar esta herramienta, considera hacer un aporte \nañadiendo servicios o donando para que sigamos creciendo :]",

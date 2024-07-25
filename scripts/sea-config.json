@@ -1,0 +1,6 @@
+{
+	"main": "dist/index.js",
+	"output": "scripts/temp/out.blob",
+	"disableExperimentalSEAWarning": true,
+	"useCodeCache": true
+}

@@ -5,6 +5,7 @@ import { decryptData, encryptData } from "@/utils/crypto.js";
 import { cancel, isCancel, password } from "@clack/prompts";
 import pkg from "package.json";
 import { exit } from "process";
+import fs from "node:fs/promises"
 
 export async function decryptPrompt(
 	encryptedData: IEncryptedData,

@@ -10,13 +10,7 @@
       "name": "Build & Debug",
       "program": "${workspaceFolder}\\dist\\index.js",
       "console": "integratedTerminal",
-      "args": ["--debug"],
-      "preLaunchTask": "build-dev",
-      "presentation": {
-        "hidden": false,
-        "group": "",
-        "order": 1
-      }
+      "preLaunchTask": "launch-parallel",
     }
   ]
 }

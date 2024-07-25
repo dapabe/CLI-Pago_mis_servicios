@@ -8,11 +8,14 @@ dist
 /blob-report/
 /playwright/.cache/
 
+# From scripts
+scripts/temp/**/*.*
+
 # Generated info file
 info.json
 
 # Everything but .example.env
-*.env
-!**/*example*.env
+.env.*
+!.env.*example*
 
 vscode-**

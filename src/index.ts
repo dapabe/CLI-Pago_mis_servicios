@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { intro, log, note } from "@clack/prompts";
-import { chromium } from "@playwright/test";
 import isOnline from "is-online";
 import nodeCleanup from "node-cleanup";
 import fs from "node:fs/promises";
@@ -25,6 +24,7 @@ import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import type { IBillContext } from "./types/generic";
 import { getServicesWithAllFilledLogins, sortBills } from "./utils/random";
 import { SequenceUtilities } from "./utils/SequenceUtilities";
+import { chromium, firefox } from "playwright-core";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -168,7 +168,7 @@ class Sequence extends SequenceUtilities {
 		// if (this.#BROWSER) return await proceed()
 		if (this.BROWSER) await this.closeWeb();
 
-		this.BROWSER = await chromium.launch({ headless: false });
+		this.BROWSER = await firefox.launch({ headless: true });
 		this.CTX = await this.BROWSER.newContext({ locale: "es-AR" });
 		this.CTX.setDefaultNavigationTimeout(60_000);
 		this.CTX.route(
@@ -265,6 +265,6 @@ class Sequence extends SequenceUtilities {
 			}
 		}
 	}
-}
+};
 
-await new Sequence().initialize();
+(new Sequence().initialize)();

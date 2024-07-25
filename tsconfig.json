@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "esnext",
+		"target": "ES2015",
+		"module": "CommonJS",
 		"moduleResolution": "node",
 		"strict": true,
 		"skipLibCheck": true,
@@ -14,7 +14,7 @@
 		"baseUrl": ".",
 		"rootDir": "src",
 		"types": ["node"],
-		"typeRoots": ["./node_modules/@types", "global.d.ts"],
+		"typeRoots": ["./node_modules/@types"],
 		"lib": ["esnext"],
 		"paths": {
 			"@/*": ["./src/*"]

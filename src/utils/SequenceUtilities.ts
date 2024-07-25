@@ -9,20 +9,20 @@ import { firstTimePrompt } from "@/prompts/startup/firstTime.prompt";
 import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
 import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
 import { cancel, log, note, outro } from "@clack/prompts";
-import type { Browser, BrowserContext, Page } from "@playwright/test";
 import fs from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
 import { encryptData } from "./crypto";
+import { Browser, BrowserContext, Page } from "playwright-core";
 
 /**
  *  Used to hide not so important things \
  *  from the main Sequence.
  */
 export class SequenceUtilities {
-  static DEV_MODE = process.env.NODE_ENV === "dev";
+  static DEV_MODE = process.env.NODE_ENV === "development";
   static DEBUG_MODE = SequenceUtilities.DEV_MODE && process.argv.includes("--debug");
 
   #_STEP = 0;
@@ -63,6 +63,9 @@ export class SequenceUtilities {
 
   //  Utilities
 
+  /**
+   * Writes the encrypted data into `FILE_PATH`
+   */
   protected async regenerateFile(): Promise<void> {
     try {
       const password = await firstTimePrompt();

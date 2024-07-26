@@ -3,8 +3,8 @@
 	"files": {
 		"include": [
 			"./*.json",
-			"./global.d.ts",
-			"./apps/**/src/**/*.{js,ts}",
+			"./apps/**/src/**/*.{js,ts,json}",
+			"./packages/**/*.{js,ts,json}",
 			"./apps/**/scripts/**"
 		]
 	},

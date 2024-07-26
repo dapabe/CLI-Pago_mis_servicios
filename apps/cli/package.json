@@ -16,7 +16,7 @@
 		"build:prod": "node --env-file=.env.production scripts/bundler.mjs",
 		"gen:exe": "node scripts/create-bin.mjs",
 		"start": "node dist/index.cjs",
-		"serve": "node --env-file=.env.development dist/index.cjs",
+		"serve": "node --env-file=.env.development dist/index.cjs"
 	},
 	"dependencies": {
 		"@clack/prompts": "0.7.0",
@@ -44,8 +44,6 @@
 		"@types/semver": "7.5.8",
 		"@types/update-notifier": "6.0.8",
 		"esbuild": "0.23.0",
-		"husky": "^9.0.11",
-		"lint-staged": "^15.2.7",
 		"postject": "1.0.0-alpha.6"
 	}
 }

@@ -19,7 +19,8 @@ await esbuild.build({
 		"./loader", //  playwright-core
 	],
 	legalComments: "inline",
-	outdir: "dist",
+	// outdir: "dist",
+	outfile: "dist/index.cjs",
 	packages: "bundle",
 	// logLevel: "verbose",
 });

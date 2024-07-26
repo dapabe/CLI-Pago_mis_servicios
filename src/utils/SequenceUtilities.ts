@@ -1,5 +1,5 @@
 import { LoginFields } from "@/constants/login-fields";
-import { generatedFileName } from "@/constants/random";
+import { AppPackage, generatedFileName } from "@/constants/random";
 import { ServiceDashboards } from "@/constants/service-dashboards";
 import { ServiceOnRevision } from "@/constants/service-on-revision";
 import type { ISupportedServices } from "@/constants/services";
@@ -8,7 +8,7 @@ import { StepsToPay } from "@/constants/steps-to-pay";
 import { firstTimePrompt } from "@/prompts/startup/firstTime.prompt";
 import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
 import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
-import { cancel, log, note, outro } from "@clack/prompts";
+import { cancel, log, note, outro, spinner } from "@clack/prompts";
 import fs from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
@@ -16,6 +16,10 @@ import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
 import { encryptData } from "./crypto";
 import { Browser, BrowserContext, Page } from "playwright-core";
+import { IServiceData } from "@/types/api";
+import { ServerEndpoint } from "@/api/server";
+import { conjunctionList } from "./random";
+import { ApiError } from "./errors/API.error";
 
 /**
  *  Used to hide not so important things \
@@ -23,7 +27,7 @@ import { Browser, BrowserContext, Page } from "playwright-core";
  */
 export class SequenceUtilities {
   static DEV_MODE = process.env.NODE_ENV === "development";
-  static DEBUG_MODE = SequenceUtilities.DEV_MODE && process.argv.includes("--debug");
+  static DEBUG_MODE = process.argv.includes("--debug");
 
   #_STEP = 0;
   protected get STEP() {
@@ -61,7 +65,32 @@ export class SequenceUtilities {
     { page: Page; dashboard: string } | null
   >();
 
+  static ServiceData: IServiceData = {} as IServiceData
+
   //  Utilities
+
+  protected async getApiResponses() {
+    const sp = spinner()
+    sp.start("Obteniendo información de servicios, esto puede tardar")
+    const responses = await Promise.allSettled(Object.values(ServerEndpoint).map(x => x()))
+
+    let failIndexes: string[] = []
+    for (const res of responses) {
+      if (res.status === "fulfilled") {
+        if (!res.value.data) failIndexes.push(picocolors.underline(res.value.key));
+        else {
+          SequenceUtilities.ServiceData[res.value.key] = res.value.data as any
+          SequenceUtilities.DEBUG_MODE && note(JSON.stringify(SequenceUtilities.ServiceData[res.value.key]), "[DEBUG]")
+        }
+      }
+    }
+    if (failIndexes.length) {
+      sp.stop("Hubo un error al contactar con el servidor")
+      log.error(`Falló el indice: ${conjunctionList(failIndexes)}`)
+      throw new ApiError()
+    }
+    sp.stop("Información obtenida")
+  }
 
   /**
    * Writes the encrypted data into `FILE_PATH`
@@ -159,7 +188,7 @@ export class SequenceUtilities {
       const success = await waitLogin();
       if (!success)
         log.warning(
-          `Ha ocurrido un error al iniciar sesión en ${picocolors.underline(service)}\n, revise sus credenciales.`,
+          `Ha ocurrido un error al iniciar sesión en ${picocolors.underline(service)} \n, revise sus credenciales.`,
         );
 
       return success;
@@ -192,7 +221,7 @@ export class SequenceUtilities {
         log.success(`¡${picocolors.underline(service)} pagado correctamente!`);
       else
         log.error(
-          `No se ha podido pagar ${picocolors.underline(service)}, razón: \n${res}`,
+          `No se ha podido pagar ${picocolors.underline(service)}, razón: \n${res} `,
         );
     } catch (error) {
       return this.exceptionTermination(error);
@@ -218,7 +247,7 @@ export class SequenceUtilities {
   protected async exceptionTermination(e: unknown) {
     await this.closeWeb();
     cancel(
-      `Ha ocurrido un error no manejado en el [Step ${this.STEP}]: \n${(e as Error).message}`,
+      `Ha ocurrido un error en el [Paso ${this.STEP}]:\n${(e as Error).message}`,
     );
     return process.exit(0);
   }

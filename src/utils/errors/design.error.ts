@@ -1,6 +1,8 @@
-export class DesignError extends Error {
+import { BaseError } from "./base.error";
+
+export class DesignError extends BaseError {
 	constructor() {
-		super("Ha cambiado el diseño de la página.");
-		this.name = this.constructor.name;
+		super()
+		this.message = "Ha cambiado el diseño de la página."
 	}
 }

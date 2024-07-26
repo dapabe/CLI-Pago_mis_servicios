@@ -1,3 +1,4 @@
+import { IServiceStatus } from "@/types/api";
 import { type ISupportedServices, SupportedServices } from "./services";
 
 /**
@@ -9,7 +10,7 @@ import { type ISupportedServices, SupportedServices } from "./services";
  *
  *  @description `true` means disabled.
  */
-export const ServiceOnRevision: Record<ISupportedServices, boolean> = {
+export const ServiceOnRevision: IServiceStatus = {
 	[SupportedServices.enum.Aysa]: true,
 	[SupportedServices.enum.Edesur]: false,
 	[SupportedServices.enum.Telecentro]: false,

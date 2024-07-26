@@ -1,6 +1,8 @@
-export class LocatorError extends Error {
+import { BaseError } from "./base.error";
+
+export class LocatorError extends BaseError {
 	constructor(name: string) {
-		super(`No se ha podido encontrar: ${name}`);
-		this.name = this.constructor.name;
+		super();
+		this.message = `No se ha podido encontrar: ${name}`
 	}
 }

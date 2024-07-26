@@ -24,7 +24,7 @@ import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import type { IBillContext } from "./types/generic";
 import { getServicesWithAllFilledLogins, sortBills } from "./utils/random";
 import { SequenceUtilities } from "./utils/SequenceUtilities";
-import { chromium, firefox } from "playwright-core";
+import { firefox } from "playwright-core";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -46,10 +46,15 @@ class Sequence extends SequenceUtilities {
 		);
 		log.info(`Creado y mantenido por ${picocolors.blue(AppPackage.author)}`);
 		log.warning(
-			`Si estas teniendo problemas usando la aplicación compartelo \nen: ${AppPackage.repository.url}`,
+			`Si estas teniendo problemas usando la aplicación compartelo \nen: ${picocolors.underline(AppPackage.repository.url)}`,
 		);
 
-		await this.#checkFile().catch(this.exceptionTermination);
+		try {
+			await this.getApiResponses();
+			await this.#checkFile();
+		} catch (error) {
+			this.exceptionTermination(error)
+		}
 	}
 
 	/**

@@ -17,5 +17,6 @@ info.json
 # Everything but .example.env
 .env.*
 !.env.*example*
+.turbo
 
 vscode-**

@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"target": "ES2015",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"strict": true,
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"noImplicitAny": false,
+		"outDir": "dist",
+		"baseUrl": ".",
+		"rootDir": "src",
+		"types": ["node"],
+		"typeRoots": ["./node_modules/@types"],
+		"lib": ["esnext"],
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	},
+	"include": ["src"],
+	"exclude": ["node_modules"]
+}

@@ -1,6 +1,6 @@
 import picocolors from "picocolors";
 import { BaseError } from "./base.error";
-import { AppPackage } from "@/constants/random";
+import { AppPackage } from "#/constants/random";
 
 export class ApiError extends BaseError {
   constructor() {

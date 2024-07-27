@@ -2,7 +2,7 @@ import {
 	type IValidVersions,
 	type SchemaUtilities,
 	ZodSchemaManager,
-} from "@/utils/ZodSchemaManager.js";
+} from "#/utils/ZodSchemaManager.js";
 import { z } from "zod";
 import { StoredPaymentMethodManager } from "./paymentMethod.schema.js";
 import { UserServiceManager } from "./userServiceField.schema.js";
@@ -12,8 +12,7 @@ import { UserServiceManager } from "./userServiceField.schema.js";
  */
 export class UserDataSchema
 	extends ZodSchemaManager<"0.0.0", typeof UserDataSchema>
-	implements SchemaUtilities
-{
+	implements SchemaUtilities {
 	static "0.0.0" = z.object({
 		secureMode: z.boolean().default(true),
 		serviceFields: UserServiceManager.getLastSchema().default({}),

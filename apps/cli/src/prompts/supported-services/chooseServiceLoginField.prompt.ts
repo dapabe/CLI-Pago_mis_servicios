@@ -1,8 +1,8 @@
-import { SafeExitMessage } from "@/constants/random.js";
-import type { ISupportedServices } from "@/constants/services";
-import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
-import type { IUserData } from "@/schemas/userData.schema";
-import { TranslatedInput } from "@/utils/translation";
+import { SafeExitMessage } from "#/constants/random.js";
+import type { ISupportedServices } from "#/constants/services";
+import type { IServiceLoginFields } from "#/schemas/serviceLoginField.schema";
+import type { IUserData } from "#/schemas/userData.schema";
+import { TranslatedInput } from "#/utils/translation";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

@@ -1,12 +1,12 @@
-import { SafeExitMessage } from "@/constants/random";
+import { SafeExitMessage } from "#/constants/random";
 import {
 	type IStoredPaymentMethod,
 	StoredPaymentMethodManager,
-} from "@/schemas/paymentMethod.schema";
+} from "#/schemas/paymentMethod.schema";
 
-import { CardBrand, CardType } from "@/constants/card";
-import type { ISupportedServices } from "@/constants/services";
-import type { IUserData } from "@/schemas/userData.schema";
+import { CardBrand, CardType } from "#/constants/card";
+import type { ISupportedServices } from "#/constants/services";
+import type { IUserData } from "#/schemas/userData.schema";
 import * as prompt from "@clack/prompts";
 import { exit } from "process";
 import { addPaymentAliasPrompt } from "./addPaymentAlias.prompt";

@@ -1,4 +1,4 @@
-import type { IStoredPaymentMethod } from "@/schemas/paymentMethod.schema";
+import type { IStoredPaymentMethod } from "#/schemas/paymentMethod.schema";
 import { type ISupportedServices, SupportedServices } from "./services";
 
 type CardFields = Omit<IStoredPaymentMethod, "uuid" | "payAlias">;

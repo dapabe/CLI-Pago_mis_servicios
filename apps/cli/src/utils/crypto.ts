@@ -1,5 +1,5 @@
-import type { IEncryptedData } from "@/schemas/encryptedData.schema";
-import type { IUserData } from "@/schemas/userData.schema";
+import type { IEncryptedData } from "#/schemas/encryptedData.schema";
+import type { IUserData } from "#/schemas/userData.schema";
 import CryptoJS from "crypto-js";
 import nCrypto from "node:crypto";
 import pkg from "../../package.json";

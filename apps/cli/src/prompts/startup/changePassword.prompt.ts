@@ -1,4 +1,4 @@
-import { SafeExitMessage } from "@/constants/random";
+import { SafeExitMessage } from "#/constants/random";
 import { cancel, isCancel, password } from "@clack/prompts";
 import { exit } from "process";
 

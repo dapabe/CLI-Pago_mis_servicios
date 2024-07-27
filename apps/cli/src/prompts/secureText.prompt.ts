@@ -1,4 +1,4 @@
-import { SafeExitMessage } from "@/constants/random";
+import { SafeExitMessage } from "#/constants/random";
 import {
 	type PasswordOptions,
 	type TextOptions,

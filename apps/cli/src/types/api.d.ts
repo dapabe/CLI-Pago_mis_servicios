@@ -1,5 +1,5 @@
-import { ISupportedServices } from "@/constants/services";
-import { BillData } from "@/constants/steps-to-last-bill";
+import { ISupportedServices } from "#/constants/services";
+import { BillData } from "#/constants/steps-to-last-bill";
 
 /**
  *  Endpoint data key

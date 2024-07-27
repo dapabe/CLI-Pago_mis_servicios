@@ -1,16 +1,15 @@
-import { CardBrand, CardType } from "@/constants/card";
+import { CardBrand, CardType } from "#/constants/card";
 import {
 	type IValidVersions,
 	type SchemaUtilities,
 	ZodSchemaManager,
-} from "@/utils/ZodSchemaManager";
-import { TranslatedInput } from "@/utils/translation";
+} from "#/utils/ZodSchemaManager";
+import { TranslatedInput } from "#/utils/translation";
 import { z } from "zod";
 
 export class StoredPaymentMethodSchema
 	extends ZodSchemaManager<"0.0.0", typeof StoredPaymentMethodSchema>
-	implements SchemaUtilities
-{
+	implements SchemaUtilities {
 	static "0.0.0" = z.object({
 		fullName: z.string().trim().min(1, "El nombre no puede estar vacio."),
 		frontNumber: z.string().refine((val) => /^\d{14,16}$/.test(val), {

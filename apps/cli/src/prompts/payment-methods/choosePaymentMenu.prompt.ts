@@ -1,8 +1,8 @@
-import { SafeExitMessage } from "@/constants/random";
+import { SafeExitMessage } from "#/constants/random";
 
-import type { ISupportedServices } from "@/constants/services";
-import type { IUserData } from "@/schemas/userData.schema";
-import type { IUserService } from "@/schemas/userServiceField.schema";
+import type { ISupportedServices } from "#/constants/services";
+import type { IUserData } from "#/schemas/userData.schema";
+import type { IUserService } from "#/schemas/userServiceField.schema";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

@@ -1,4 +1,4 @@
-import { IServiceStatus } from "@/types/api";
+import { IServiceStatus } from "#/types/api";
 import { type ISupportedServices, SupportedServices } from "./services";
 
 /**

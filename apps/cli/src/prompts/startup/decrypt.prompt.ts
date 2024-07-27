@@ -1,7 +1,7 @@
-import { SafeExitMessage, generatedFileName } from "@/constants/random.js";
-import type { IEncryptedData } from "@/schemas/encryptedData.schema";
-import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
-import { decryptData, encryptData } from "@/utils/crypto.js";
+import { SafeExitMessage, generatedFileName } from "#/constants/random.js";
+import type { IEncryptedData } from "#/schemas/encryptedData.schema";
+import { type IUserData, UserDataManager } from "#/schemas/userData.schema";
+import { decryptData, encryptData } from "#/utils/crypto.js";
 import { cancel, isCancel, password } from "@clack/prompts";
 import pkg from "package.json";
 import { exit } from "process";

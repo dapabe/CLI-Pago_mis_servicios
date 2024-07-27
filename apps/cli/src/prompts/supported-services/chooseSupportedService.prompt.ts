@@ -1,14 +1,14 @@
 import {
 	RequiredServiceFieldAmount,
 	SafeExitMessage,
-} from "@/constants/random.js";
-import { ServiceOnRevision } from "@/constants/service-on-revision.js";
+} from "#/constants/random.js";
+import { ServiceOnRevision } from "#/constants/service-on-revision.js";
 import {
 	type ISupportedServices,
 	SupportedServices,
-} from "@/constants/services.js";
-import { ServiceLoginFieldsManager } from "@/schemas/serviceLoginField.schema.js";
-import type { IUserData } from "@/schemas/userData.schema.js";
+} from "#/constants/services.js";
+import { ServiceLoginFieldsManager } from "#/schemas/serviceLoginField.schema.js";
+import type { IUserData } from "#/schemas/userData.schema.js";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

@@ -1,5 +1,5 @@
-import { SafeExitMessage } from "@/constants/random";
-import { StoredPaymentMethodManager } from "@/schemas/paymentMethod.schema";
+import { SafeExitMessage } from "#/constants/random";
+import { StoredPaymentMethodManager } from "#/schemas/paymentMethod.schema";
 import { cancel, confirm, isCancel, text } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

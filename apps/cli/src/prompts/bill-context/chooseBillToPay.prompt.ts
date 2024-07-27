@@ -1,7 +1,7 @@
-import { SafeExitMessage } from "@/constants/random.js";
-import type { ISupportedServices } from "@/constants/services";
-import type { IBillContext } from "@/types/generic";
-import { currencyFormat } from "@/utils/random";
+import { SafeExitMessage } from "#/constants/random.js";
+import type { ISupportedServices } from "#/constants/services";
+import type { IBillContext } from "#/types/generic";
+import { currencyFormat } from "#/utils/random";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

@@ -1,9 +1,10 @@
 {
-	"name":"monorepo-auto_paid_service",
-	"private":true,
+	"name": "@repo/aps",
+	"description": "monorepo-auto_paid_service",
+	"private": true,
 	"scripts": {
-		"build":"turbo build",
-		"dev":"turbo dev",
+		"build": "turbo build",
+		"dev": "turbo dev",
 		"semver": "changeset",
 		"new-version": "changeset version"
 	},

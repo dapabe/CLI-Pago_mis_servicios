@@ -1,6 +1,6 @@
-import { SafeExitMessage } from "@/constants/random";
-import type { IStoredPaymentMethod } from "@/schemas/paymentMethod.schema";
-import { conjunctionList } from "@/utils/random";
+import { SafeExitMessage } from "#/constants/random";
+import type { IStoredPaymentMethod } from "#/schemas/paymentMethod.schema";
+import { conjunctionList } from "#/utils/random";
 import { cancel, confirm, isCancel, multiselect } from "@clack/prompts";
 import picocolors from "picocolors";
 import { exit } from "process";

@@ -1,8 +1,8 @@
-import type { StepsToLastBillResults } from "@/types/step-results";
-import { DesignError } from "@/utils/errors/design.error";
-import { LocatorError } from "@/utils/errors/locator.error";
-import { normalizeNumber } from "@/utils/random";
-import { TranslatedLocator } from "@/utils/translation";
+import type { StepsToLastBillResults } from "#/types/step-results";
+import { DesignError } from "#/utils/errors/design.error";
+import { LocatorError } from "#/utils/errors/locator.error";
+import { normalizeNumber } from "#/utils/random";
+import { TranslatedLocator } from "#/utils/translation";
 import { type ISupportedServices, SupportedServices } from "./services";
 import { Page } from "playwright-core";
 

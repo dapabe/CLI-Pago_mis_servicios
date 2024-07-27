@@ -1,12 +1,12 @@
 import {
 	type ISupportedServices,
 	SupportedServices,
-} from "@/constants/services";
+} from "#/constants/services";
 import {
 	type IValidVersions,
 	type SchemaUtilities,
 	ZodSchemaManager,
-} from "@/utils/ZodSchemaManager";
+} from "#/utils/ZodSchemaManager";
 import { z } from "zod";
 import { ServiceLoginFieldsManager } from "./serviceLoginField.schema";
 
@@ -29,8 +29,7 @@ function createDynamicServiceField() {
  */
 export class UserServiceSchema
 	extends ZodSchemaManager<"0.0.0", typeof UserServiceSchema>
-	implements SchemaUtilities
-{
+	implements SchemaUtilities {
 	static "0.0.0" = createDynamicServiceField();
 
 	constructor() {

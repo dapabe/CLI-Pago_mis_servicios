@@ -2,7 +2,7 @@ import {
 	type IValidVersions,
 	type SchemaUtilities,
 	ZodSchemaManager,
-} from "@/utils/ZodSchemaManager";
+} from "#/utils/ZodSchemaManager";
 import pkg from "package.json";
 import { z } from "zod";
 import { ZodSemverUnbranded } from "zod-semver";
@@ -12,8 +12,7 @@ import { ZodSemverUnbranded } from "zod-semver";
  */
 export class EncryptedDataSchema
 	extends ZodSchemaManager<"0.0.0", typeof EncryptedDataSchema>
-	implements SchemaUtilities
-{
+	implements SchemaUtilities {
 	static "0.0.0" = z.object({
 		version: ZodSemverUnbranded.default(pkg.version),
 		salt: z.string(),

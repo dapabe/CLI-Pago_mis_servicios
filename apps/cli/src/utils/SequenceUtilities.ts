@@ -1,13 +1,13 @@
-import { LoginFields } from "@/constants/login-fields";
-import { AppPackage, generatedFileName } from "@/constants/random";
-import { ServiceDashboards } from "@/constants/service-dashboards";
-import { ServiceOnRevision } from "@/constants/service-on-revision";
-import type { ISupportedServices } from "@/constants/services";
-import { StepsToLogin } from "@/constants/steps-to-login";
-import { StepsToPay } from "@/constants/steps-to-pay";
-import { firstTimePrompt } from "@/prompts/startup/firstTime.prompt";
-import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
-import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
+import { LoginFields } from "#/constants/login-fields";
+import { generatedFileName } from "#/constants/random";
+import { ServiceDashboards } from "#/constants/service-dashboards";
+import { ServiceOnRevision } from "#/constants/service-on-revision";
+import type { ISupportedServices } from "#/constants/services";
+import { StepsToLogin } from "#/constants/steps-to-login";
+import { StepsToPay } from "#/constants/steps-to-pay";
+import { firstTimePrompt } from "#/prompts/startup/firstTime.prompt";
+import type { IServiceLoginFields } from "#/schemas/serviceLoginField.schema";
+import { type IUserData, UserDataManager } from "#/schemas/userData.schema";
 import { cancel, log, note, outro, spinner } from "@clack/prompts";
 import fs from "node:fs/promises";
 import process from "node:process";
@@ -16,17 +16,18 @@ import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
 import { encryptData } from "./crypto";
 import { Browser, BrowserContext, Page } from "playwright-core";
-import { IServiceData } from "@/types/api";
-import { ServerEndpoint } from "@/api/server";
+import { IServiceData } from "#/types/api";
+import { ServerEndpoint } from "#/api/server";
 import { conjunctionList } from "./random";
 import { ApiError } from "./errors/API.error";
+import { env } from "#/constants/env";
 
 /**
  *  Used to hide not so important things \
  *  from the main Sequence.
  */
 export class SequenceUtilities {
-  static DEV_MODE = process.env.NODE_ENV === "development";
+  static DEV_MODE = env.node_env === "development";
   static DEBUG_MODE = process.argv.includes("--debug");
 
   #_STEP = 0;

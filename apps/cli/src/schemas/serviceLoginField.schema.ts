@@ -2,7 +2,7 @@ import {
 	type IValidVersions,
 	type SchemaUtilities,
 	ZodSchemaManager,
-} from "@/utils/ZodSchemaManager";
+} from "#/utils/ZodSchemaManager";
 import { z } from "zod";
 import { StoredPaymentMethodManager } from "./paymentMethod.schema";
 
@@ -11,8 +11,7 @@ import { StoredPaymentMethodManager } from "./paymentMethod.schema";
  */
 export class ServiceLoginFieldsSchema
 	extends ZodSchemaManager<"0.0.0", typeof ServiceLoginFieldsSchema>
-	implements SchemaUtilities
-{
+	implements SchemaUtilities {
 	static "0.0.0" = z.object({
 		username: z.string().nullable().default(null),
 		password: z.string().nullable().default(null),

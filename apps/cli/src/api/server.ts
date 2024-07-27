@@ -1,13 +1,14 @@
-import { IServiceDataKeys, IServicesDashboards, IServicesLastBillPages, IServicesLastBillSelectors, IServicesLoginPages, IServicesLoginSelectors, IServicesStatuses } from "@/types/api"
-import { SequenceUtilities } from "@/utils/SequenceUtilities"
+import { env } from "#/constants/env"
+import { IServiceDataKeys, IServicesDashboards, IServicesLastBillPages, IServicesLastBillSelectors, IServicesLoginPages, IServicesLoginSelectors, IServicesStatuses } from "#/types/api"
+import { SequenceUtilities } from "#/utils/SequenceUtilities"
 import mspack from "@msgpack/msgpack"
 
-const headers = new Headers()
+// const headers = new Headers()
 // headers.set("Content-Type", "application/octet-stream")
 
 type ApiRes<T> = { key: IServiceDataKeys, data: T | null }
 
-const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${process.env.SERVICE_ENDPOINT}/${nextURL}`)
+const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${env.backend_endpoint}/${nextURL}`)
   .then(async x => {
     if (!x.ok || x.status !== 200) return { key, data: null }
     const data = mspack.decode(new Uint8Array(await x.arrayBuffer())) as T

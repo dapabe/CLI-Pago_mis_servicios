@@ -17,9 +17,9 @@
 		"typeRoots": ["./node_modules/@types"],
 		"lib": ["esnext"],
 		"paths": {
-			"@/*": ["./src/*"]
+			"#/*": ["./src/*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "../../tsconfig/global.d.ts"],
 	"exclude": ["node_modules"]
 }

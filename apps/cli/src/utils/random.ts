@@ -1,7 +1,7 @@
-import type { ISupportedServices } from "@/constants/services";
-import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
-import type { IUserData } from "@/schemas/userData.schema";
-import type { IBillContext } from "@/types/generic";
+import type { ISupportedServices } from "#/constants/services";
+import type { IServiceLoginFields } from "#/schemas/serviceLoginField.schema";
+import type { IUserData } from "#/schemas/userData.schema";
+import type { IBillContext } from "#/types/generic";
 
 export function getServicesWithFilledLogins(userData: IUserData) {
 	const stripped = (

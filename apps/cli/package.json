@@ -1,5 +1,5 @@
 {
-	"name": "@repo/cli-pago_mis_servicios",
+	"name": "@repo/cli",
 	"version": "0.0.0",
 	"type": "module",
 	"description": "Modern Node.js Command Line Tool to pay bills automatically.",

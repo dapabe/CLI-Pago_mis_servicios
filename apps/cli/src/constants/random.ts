@@ -1,4 +1,4 @@
-import { ServiceLoginFieldsManager } from "@/schemas/serviceLoginField.schema";
+import { ServiceLoginFieldsManager } from "#/schemas/serviceLoginField.schema";
 import pkg from "package.json";
 
 export const AppPackage = pkg;

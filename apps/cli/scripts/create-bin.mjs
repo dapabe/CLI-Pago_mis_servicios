@@ -6,14 +6,15 @@ import path from "node:path";
 import { inject } from "postject";
 
 exec(
-	`npm run ${process.argv.includes("--debug") ? "build:dev" : "build:prod"}`,
+	`npm run ${process.argv.includes("--debug") ? "dev:cli" : "build:cli"}`,
 	(err, stdout, stderr) => {
 		if (err) return console.log(err);
 		if (stderr) return console.log(stderr);
+		console.log(stdout);
 	},
 );
 
-const appName = `${pkg.name}.exe`;
+const appName = `${pkg.appName}.exe`;
 const configPath = path.join(process.cwd(), "scripts", "sea-config.json");
 
 intro("Creating node SEA");

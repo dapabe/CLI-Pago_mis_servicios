@@ -3,14 +3,17 @@
 	"description": "monorepo-auto_paid_service",
 	"private": true,
 	"scripts": {
-		"build": "turbo build",
-		"dev": "turbo dev",
+		"gen:cli": "turbo --cwd=./apps/cli gen:cli",
+		"dev:cli": "turbo dev:cli",
+		"start:cli": "turbo start:cli",
 		"semver": "changeset",
 		"new-version": "changeset version"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3",
 		"@changesets/cli": "^2.27.6",
+		"dotenv": "16.4.5",
 		"turbo": "2.0.9"
-	}
+	},
+	"packageManager": "pnpm@9.6.0"
 }

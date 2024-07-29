@@ -6,6 +6,7 @@ import * as esbuild from "esbuild";
  *  as it only recognises cjs
  */
 const devMode = process.env.NODE_ENV === "development";
+console.log(`Bundled in: ${process.env.NODE_ENV} MODE`);
 
 await esbuild.build({
 	entryPoints: ["src/index.ts"],

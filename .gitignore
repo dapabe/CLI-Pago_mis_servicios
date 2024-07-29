@@ -8,15 +8,17 @@ dist
 /blob-report/
 /playwright/.cache/
 
-# From scripts
-scripts/temp/**/*.*
+vscode-**
 
-# Generated info file
+# From scripts
+apps/cli/scripts/temp/**.*
+apps/cli/scripts/temp/out.blob
+
+# Generated files
 info.json
+.turbo
 
 # Everything but .example.env
 .env.*
 !.env.*example*
-.turbo
 
-vscode-**

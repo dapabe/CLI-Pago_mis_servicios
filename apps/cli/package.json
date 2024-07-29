@@ -1,6 +1,7 @@
 {
 	"name": "@repo/cli",
 	"version": "0.0.0",
+	"appName": "CLI-Pago_mis_servicios",
 	"type": "module",
 	"description": "Modern Node.js Command Line Tool to pay bills automatically.",
 	"author": "Daniel Patricio Becerra",
@@ -9,14 +10,12 @@
 		"url": "https://github.com/dapabe/CLI-Pago_mis_servicios"
 	},
 	"license": "Apache-2.0",
-	"main": "dist/index.js",
-	"bin": "dist/index.js",
+	"main": "dist/index.cjs",
+	"bin": "dist/index.cjs",
 	"scripts": {
-		"build:dev": "node --env-file=.env.development scripts/bundler.mjs",
-		"build:prod": "node --env-file=.env.production scripts/bundler.mjs",
-		"gen:exe": "node scripts/create-bin.mjs",
-		"start": "node dist/index.cjs",
-		"serve": "node --env-file=.env.development dist/index.cjs"
+		"dev:cli": "node scripts/bundler.mjs",
+		"gen:cli": "node scripts/create-bin.mjs",
+		"start:cli": "node dist/index.cjs"
 	},
 	"dependencies": {
 		"@clack/prompts": "0.7.0",

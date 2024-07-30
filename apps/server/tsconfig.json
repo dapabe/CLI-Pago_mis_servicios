@@ -21,5 +21,6 @@
 			"#/*": ["./src/*"]
 		}
 	},
-	"include": ["src","global.d.ts"]
+	"include": ["src", "../../tsconfig/global.d.ts"],
+	"exclude": ["node_modules"]
 }

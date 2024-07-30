@@ -1,5 +1,5 @@
 {
-	"name": "node-service-revision-server",
+	"name": "@repo/server",
 	"version": "1.0.0",
 	"description": "Server for cli-pago_mis_servicios",
 	"type": "module",
@@ -13,7 +13,7 @@
 		"gen": "node --env-file=.env ./scripts/genSupaTypes.js"
 	},
 	"author": "Daniel Patricio Becerra",
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"dependencies": {
 		"@libsql/client": "0.7.0",
 		"@msgpack/msgpack": "3.0.0-beta2",

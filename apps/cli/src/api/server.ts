@@ -3,6 +3,7 @@ import { IServiceDataKeys, IServicesDashboards, IServicesLastBillPages, IService
 import { SequenceUtilities } from "#/utils/SequenceUtilities"
 import { log } from "@clack/prompts"
 import mspack from "@msgpack/msgpack"
+import picocolors from "picocolors"
 
 // const headers = new Headers()
 // headers.set("Content-Type", "application/octet-stream")
@@ -11,7 +12,7 @@ type ApiRes<T> = { key: IServiceDataKeys, data: T } | { key: IServiceDataKeys, d
 
 const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${env.backend_endpoint}/${nextURL}`)
   .then(async x => {
-    SequenceUtilities.DEBUG_MODE && log.warning(`${key}: ${JSON.stringify(x)}`)
+    SequenceUtilities.DEBUG_MODE && log.warning(`${picocolors.bgYellow("[DEBUG]")} ${key}: ${JSON.stringify(x)}`)
     const noData: ApiRes<T> = { key, data: null, error: "" }
     if (!x.ok) {
       noData.error = `not "ok" (${x.statusText})`;

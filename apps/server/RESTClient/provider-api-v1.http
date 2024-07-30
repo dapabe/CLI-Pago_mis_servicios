@@ -1,0 +1,35 @@
+@host = https://node-service-revision-server.onrender.com
+@base-path = api
+@version = v1
+@url = {{host}}/{{base-path}}/{{version}}
+
+###
+// Ping
+GET {{host}}/ping
+
+### DEV-MODE
+// Insert new service
+POST {{url}}/services/
+Content-Type: application/json
+
+[
+  {
+    "service_name": "Edenor"
+  }
+]
+
+### DEV-MODE
+//  Deletes a service
+DELETE {{url}}/services/
+  ?names=Edenor
+
+### 
+// Get all services with revision status
+GET {{url}}/services/statuses
+Content-Type: application/json
+
+### DEV-MODE
+// Toggle service status
+POST {{url}}/services/statuses
+  ?toggle=Edenor
+

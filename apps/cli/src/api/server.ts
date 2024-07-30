@@ -12,7 +12,15 @@ type ApiRes<T> = { key: IServiceDataKeys, data: T } | { key: IServiceDataKeys, d
 const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${env.backend_endpoint}/${nextURL}`)
   .then(async x => {
     SequenceUtilities.DEBUG_MODE && log.warning(`${key}: ${JSON.stringify(x)}`)
-    if (!x.ok || x.status !== 200) return { key, data: null, error: "s" }
+    const noData: ApiRes<T> = { key, data: null, error: "" }
+    if (!x.ok) {
+      noData["error"] = `not "ok" (${x.statusText})`;
+      return noData;
+    }
+    if (x.status !== 200) {
+      noData["error"] = `status ${x.status} (${x.statusText})`;
+      return noData
+    }
     const data = mspack.decode(new Uint8Array(await x.arrayBuffer())) as T
     return { key, data }
   }).catch(x => {

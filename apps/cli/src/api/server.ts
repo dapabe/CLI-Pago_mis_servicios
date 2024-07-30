@@ -10,6 +10,10 @@ import picocolors from "picocolors"
 
 type ApiRes<T> = { key: IServiceDataKeys, data: T } | { key: IServiceDataKeys, data: null, error: string }
 
+
+/**
+ *  This API must explicitly do GET methods returning binary responses.
+ */
 const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${env.backend_endpoint}/${nextURL}`)
   .then(async x => {
     SequenceUtilities.DEBUG_MODE && log.warning(`${picocolors.bgYellow("[DEBUG]")} ${key}: ${JSON.stringify(x)}`)
@@ -25,7 +29,7 @@ const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => f
     const data = mspack.decode(new Uint8Array(await x.arrayBuffer())) as T
     return { key, data }
   }).catch(x => {
-    return { key, data: null, error: x.message }
+    return { key, data: null, error: (x as Error).message }
   })
 
 export const ServerEndpoint = {

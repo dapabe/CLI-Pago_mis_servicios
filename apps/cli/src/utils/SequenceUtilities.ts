@@ -37,7 +37,7 @@ export class SequenceUtilities {
   protected FILE_PATH = path.join(path.resolve(), generatedFileName);
 
   protected set STEP(n: number) {
-    if (SequenceUtilities.DEBUG_MODE) log.message(`DEBUG: Step ${n}`);
+    if (SequenceUtilities.DEBUG_MODE) log.message(`[DEBUG]: Paso ${n}`);
     this.#_STEP = n;
   }
 
@@ -65,7 +65,7 @@ export class SequenceUtilities {
     { page: Page; dashboard: string } | null
   >();
 
-  static ServiceData: IServiceData = {} as IServiceData
+  static ServiceData: Readonly<IServiceData> = {} as Readonly<IServiceData>
 
   //  Utilities
 
@@ -75,11 +75,12 @@ export class SequenceUtilities {
     const responses = await Promise.allSettled(Object.values(ServerEndpoint).map(x => x()))
 
     let failIndexes: string[] = []
+    const tempData: IServiceData = {} as IServiceData
     for (const res of responses) {
       if (res.status === "fulfilled") {
         if (!res.value.data) failIndexes.push(`${picocolors.underline(res.value.key)}: ${res.value.error}`);
         else {
-          SequenceUtilities.ServiceData[res.value.key] = res.value.data as any
+          tempData[res.value.key] = res.value.data as any
           SequenceUtilities.DEBUG_MODE && note(JSON.stringify(SequenceUtilities.ServiceData[res.value.key]), "[DEBUG]")
         }
       }
@@ -89,6 +90,7 @@ export class SequenceUtilities {
       log.error(`Fallaron los siguientes indices:\n${failIndexes.join("\n")}`)
       throw new ApiError()
     }
+    SequenceUtilities.ServiceData = Object.freeze(tempData)
     sp.stop("Información obtenida")
   }
 

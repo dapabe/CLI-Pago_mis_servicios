@@ -3,9 +3,9 @@
 	"description": "monorepo-auto_paid_service",
 	"private": true,
 	"scripts": {
-		"gen:cli": "turbo --cwd=./apps/cli gen:cli",
-		"dev:cli": "turbo dev:cli",
-		"start:cli": "turbo start:cli",
+		"gen:cli": "turbo --cwd=./apps/cli gen:cli --",
+		"dev:cli": "turbo dev:cli --",
+		"start:cli": "turbo start:cli --",
 		"semver": "changeset",
 		"new-version": "changeset version"
 	},

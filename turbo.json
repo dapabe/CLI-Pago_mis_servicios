@@ -8,6 +8,9 @@
 		},
 		"start:cli": {
 			"dependsOn": ["dev:cli"],
+			"cache": false,
+			// "interactive": true,
+			// "env": ["TURBO_EXPERIMENTAL_UI=true"],
 			"inputs": [".env.production", ".env.development"]
 		},
 		"gen:cli": {

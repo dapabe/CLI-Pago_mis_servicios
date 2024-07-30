@@ -18,7 +18,6 @@ import { encryptData } from "./crypto";
 import { Browser, BrowserContext, Page } from "playwright-core";
 import { IServiceData } from "#/types/api";
 import { ServerEndpoint } from "#/api/server";
-import { conjunctionList } from "./random";
 import { ApiError } from "./errors/API.error";
 import { env } from "#/constants/env";
 
@@ -78,7 +77,7 @@ export class SequenceUtilities {
     let failIndexes: string[] = []
     for (const res of responses) {
       if (res.status === "fulfilled") {
-        if (!res.value.data) failIndexes.push(picocolors.underline(res.value.key));
+        if (!res.value.data) failIndexes.push(`${picocolors.underline(res.value.key)}: ${res.value.error}`);
         else {
           SequenceUtilities.ServiceData[res.value.key] = res.value.data as any
           SequenceUtilities.DEBUG_MODE && note(JSON.stringify(SequenceUtilities.ServiceData[res.value.key]), "[DEBUG]")
@@ -87,7 +86,7 @@ export class SequenceUtilities {
     }
     if (failIndexes.length) {
       sp.stop("Hubo un error al contactar con el servidor")
-      log.error(`Falló el indice: ${conjunctionList(failIndexes)}`)
+      log.error(`Fallaron los siguientes indices:\n${failIndexes.join("\n")}`)
       throw new ApiError()
     }
     sp.stop("Información obtenida")

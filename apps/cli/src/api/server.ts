@@ -1,21 +1,22 @@
 import { env } from "#/constants/env"
 import { IServiceDataKeys, IServicesDashboards, IServicesLastBillPages, IServicesLastBillSelectors, IServicesLoginPages, IServicesLoginSelectors, IServicesStatuses } from "#/types/api"
 import { SequenceUtilities } from "#/utils/SequenceUtilities"
+import { log } from "@clack/prompts"
 import mspack from "@msgpack/msgpack"
 
 // const headers = new Headers()
 // headers.set("Content-Type", "application/octet-stream")
 
-type ApiRes<T> = { key: IServiceDataKeys, data: T | null }
+type ApiRes<T> = { key: IServiceDataKeys, data: T } | { key: IServiceDataKeys, data: null, error: string }
 
 const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => fetch(`${env.backend_endpoint}/${nextURL}`)
   .then(async x => {
-    if (!x.ok || x.status !== 200) return { key, data: null }
+    SequenceUtilities.DEBUG_MODE && log.warning(`${key}: ${JSON.stringify(x)}`)
+    if (!x.ok || x.status !== 200) return { key, data: null, error: "s" }
     const data = mspack.decode(new Uint8Array(await x.arrayBuffer())) as T
     return { key, data }
   }).catch(x => {
-    SequenceUtilities.DEBUG_MODE && console.log(x)
-    return { key, data: null }
+    return { key, data: null, error: x.message }
   })
 
 export const ServerEndpoint = {

@@ -14,11 +14,11 @@ const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> => f
     SequenceUtilities.DEBUG_MODE && log.warning(`${key}: ${JSON.stringify(x)}`)
     const noData: ApiRes<T> = { key, data: null, error: "" }
     if (!x.ok) {
-      noData["error"] = `not "ok" (${x.statusText})`;
+      noData.error = `not "ok" (${x.statusText})`;
       return noData;
     }
     if (x.status !== 200) {
-      noData["error"] = `status ${x.status} (${x.statusText})`;
+      noData.error = `status ${x.status} (${x.statusText})`;
       return noData
     }
     const data = mspack.decode(new Uint8Array(await x.arrayBuffer())) as T

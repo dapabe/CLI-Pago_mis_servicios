@@ -1,16 +1,24 @@
 import type e from "express";
-import msgpack from "@msgpack/msgpack"
+import msgpack from "@msgpack/msgpack";
 import { Database } from "#/database/Database";
 
 /**
  *  Base Controller to access and manipulate Supabase \
  *  data.
+ * 
+ * 	Should be an abstract class but for Singleton purposes \
+ * 	and TypeScript it does not.
+ * 
+ * 	@throws "Cannot instantiate an abstract class"
  */
-export abstract class Controller {
+export class Controller {
 	protected req: e.Request;
 	protected res: e.Response;
 	protected next: e.NextFunction;
 
+	/**
+	 * 	Database connection repository
+	 */
 	protected CONN = Database.CONN;
 
 	constructor(req: e.Request, res: e.Response, next: e.NextFunction) {

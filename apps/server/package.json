@@ -5,12 +5,9 @@
 	"type": "module",
 	"main": "index.ts",
 	"scripts": {
-		"dev": "tsup --env.NODE_ENV development",
-		"build": "tsup --env.NODE_ENV production",
-		"provider:build": "pnpm i --frozen-lockfile --prod && pnpm build",
-		"serve": "node --env-file=.env ./dist/index.js",
-		"start": "node ./dist/index.js",
-		"gen": "node --env-file=.env ./scripts/genSupaTypes.js"
+		"server:build": "tsup",
+		"start:cli": "node ./dist/index.js",
+		"provider:build": "pnpm i --frozen-lockfile --prod && pnpm build"
 	},
 	"author": "Daniel Patricio Becerra",
 	"license": "Apache-2.0",

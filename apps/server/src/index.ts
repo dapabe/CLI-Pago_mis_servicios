@@ -1,4 +1,5 @@
 import { App } from "./App";
+import { TypedEnv } from "./common/typed-env";
 import { Database } from "./database/Database";
 
 Database.startConnection()
@@ -10,10 +11,10 @@ const server = await new App({
 	 * 	server files, ex: Free tier doesnt allow access, just log
 	 * 	incoming requests.
 	 */
-	loggerPath: process.env.NODE_ENV === "development" ? "dist" : undefined
+	loggerPath: TypedEnv.env === "development" ? "dist" : undefined
 }).start()
 
-server.listen(Number.parseInt(process.env.SERVER_PORT), process.env.SERVER_HOST);
+server.listen(TypedEnv.port, TypedEnv.host);
 
 server.on("error", (error: any) => {
 	if (error.syscall !== "listen") {
@@ -27,7 +28,7 @@ server.on("error", (error: any) => {
 			console.error("Port is already in use");
 			setTimeout(() => {
 				server.close();
-				server.listen(Number.parseInt(process.env.SERVER_PORT), process.env.SERVER_HOST);
+				server.listen(TypedEnv.port, TypedEnv.host);
 			}, 1000);
 			break;
 		default:
@@ -38,7 +39,7 @@ server.on("error", (error: any) => {
 
 server.on("listening", () => {
 	console.log(
-		`Server started in http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}, Process ID:${process.pid}`,
+		`Server started in http://${TypedEnv.host}:${TypedEnv.port}, Process ID:${process.pid}`,
 	);
 });
 

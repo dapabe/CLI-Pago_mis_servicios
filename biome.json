@@ -3,7 +3,9 @@
 	"files": {
 		"include": [
 			"./*.json",
-			"./apps/**/src/**/*.{js,ts,json}",
+			"./apps/**/src/**",
+			"./apps/**/*.{js,ts,json}",
+			"./packages/**/src/**",
 			"./packages/**/*.{js,ts,json}",
 			"./apps/**/scripts/**"
 		]

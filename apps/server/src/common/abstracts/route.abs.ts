@@ -2,29 +2,27 @@ import type e from "express";
 import { Router } from "express";
 import type { IRoutePath } from "../types/route";
 import type { Controller } from "./controller.abs";
+import { IExpressParams } from "../types/random";
 
 /**
- *  Base route layer to access and trigger \
- *  controller methods.
+ *  Base route layer to access and trigger controller \
+ * 	methods.
  */
 export abstract class Route {
 	public ROUTER: Router;
 	public BASE_ROUTE_NAME!: IRoutePath;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	#CONTROLLER: any;
+	#CONTROLLER: Controller;
 
-	constructor(controller: typeof Controller) {
-		this.#CONTROLLER = controller;
+	constructor(con: typeof Controller) {
+		this.#CONTROLLER = new con({} as e.Request, {} as e.Response, {} as e.NextFunction);
 		this.ROUTER = Router();
 	}
 
 	/**
-	 * Passing down the method to controller.
+	 * Passing down the method to the controller *`singleton`*
 	 */
-
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	protected handler(action: () => void): any {
-		return (req: e.Request, res: e.Response, next: e.NextFunction) =>
-			action.call(new this.#CONTROLLER(req, res, next));
+	protected handler(action: Function): IExpressParams {
+		return (...requestHandlers) =>
+			action.call(this.#CONTROLLER.constructor(...requestHandlers));
 	}
 }

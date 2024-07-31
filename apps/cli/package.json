@@ -13,9 +13,9 @@
 	"main": "dist/index.cjs",
 	"bin": "dist/index.cjs",
 	"scripts": {
-		"dev:cli": "node scripts/bundler.mjs",
-		"gen:cli": "node scripts/create-bin.mjs",
-		"start:cli": "node dist/index.cjs"
+		"cli:build": "node scripts/bundler.mjs",
+		"cli:start": "node dist/index.cjs",
+		"gen:cli": "node scripts/create-bin.mjs"
 	},
 	"dependencies": {
 		"@clack/prompts": "0.7.0",

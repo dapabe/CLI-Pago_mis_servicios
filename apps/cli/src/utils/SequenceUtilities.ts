@@ -74,7 +74,7 @@ export class SequenceUtilities {
     sp.start("Obteniendo información de servicios, esto puede tardar")
     const responses = await Promise.allSettled(Object.values(ServerEndpoint).map(x => x()))
 
-    let failIndexes: string[] = []
+    const failIndexes: string[] = []
     const tempData: IServiceData = {} as IServiceData
     for (const res of responses) {
       if (res.status === "fulfilled") {

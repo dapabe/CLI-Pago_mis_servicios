@@ -1,12 +1,12 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"tasks": {
-		"dev:cli": {
+		"cli:build": {
 			"persistent": false,
 			"cache": false,
 			"inputs": [".env.production", ".env.development"]
 		},
-		"start:cli": {
+		"cli:start": {
 			"dependsOn": ["dev:cli"],
 			"cache": false,
 			// "interactive": true,

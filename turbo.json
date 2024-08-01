@@ -1,20 +1,25 @@
 {
 	"$schema": "https://turbo.build/schema.json",
+	"globalDependencies": [".env.production", ".env.development"],
+	"globalEnv": ["NODE_ENV"],
 	"tasks": {
+		"packages:build": {
+			"cache": false
+		},
 		"cli:build": {
 			"persistent": false,
 			"cache": false,
-			"inputs": [".env.production", ".env.development"]
+			"env": ["BACKEND_ENDPOINT"]
 		},
 		"cli:start": {
-			"dependsOn": ["dev:cli"],
+			"dependsOn": ["cli:build"],
 			"cache": false,
 			// "interactive": true,
-			// "env": ["TURBO_EXPERIMENTAL_UI=true"],
-			"inputs": [".env.production", ".env.development"]
+			"env": ["BACKEND_ENDPOINT"]
+			// "inputs": [".env.production", ".env.development"]
 		},
 		"gen:cli": {
-			"inputs": [".env.production", ".env.development"],
+			// "inputs": [".env.production", ".env.development"],
 			"outputs": ["**/dist/**"]
 		}
 	}

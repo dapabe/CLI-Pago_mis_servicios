@@ -1,5 +1,5 @@
 import { LoginFields } from "#/constants/login-fields";
-import { generatedFileName } from "#/constants/random";
+import { generatedFileName, SafeExitMessage } from "#/constants/random";
 import { ServiceDashboards } from "#/constants/service-dashboards";
 import { ServiceOnRevision } from "#/constants/service-on-revision";
 import type { ISupportedServices } from "#/constants/services";
@@ -8,25 +8,30 @@ import { StepsToPay } from "#/constants/steps-to-pay";
 import { firstTimePrompt } from "#/prompts/startup/firstTime.prompt";
 import type { IServiceLoginFields } from "#/schemas/serviceLoginField.schema";
 import { type IUserData, UserDataManager } from "#/schemas/userData.schema";
-import { cancel, log, note, outro, spinner } from "@clack/prompts";
+import {
+  cancel, isCancel, log,
+  note,
+  outro,
+  select, spinner
+} from "@clack/prompts";
 import fs from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import picocolors from "picocolors";
 import { getDefaultsForSchema } from "zod-defaults";
 import { encryptData } from "./crypto";
-import { Browser, BrowserContext, Page } from "playwright-core";
-import { IServiceData } from "#/types/api";
+import type { Browser, BrowserContext, Page } from "playwright-core";
+import type { IServiceData } from "#/types/api";
 import { ServerEndpoint } from "#/api/server";
 import { ApiError } from "./errors/API.error";
-import { env } from "#/constants/env";
+import { TypedEnv } from "#/constants/env";
 
 /**
  *  Used to hide not so important things \
  *  from the main Sequence.
  */
 export class SequenceUtilities {
-  static DEV_MODE = env.node_env === "development";
+  static DEV_MODE = TypedEnv.env === "development";
   static DEBUG_MODE = process.argv.includes("--debug");
 
   #_STEP = 0;
@@ -65,33 +70,42 @@ export class SequenceUtilities {
     { page: Page; dashboard: string } | null
   >();
 
-  static ServiceData: Readonly<IServiceData> = {} as Readonly<IServiceData>
+  static ServiceData: Readonly<IServiceData> = {} as Readonly<IServiceData>;
 
   //  Utilities
 
   protected async getApiResponses() {
-    const sp = spinner()
-    sp.start("Obteniendo información de servicios, esto puede tardar")
-    const responses = await Promise.allSettled(Object.values(ServerEndpoint).map(x => x()))
+    const sp = spinner();
+    sp.start("Obteniendo información de servicios, esto puede tardar");
+    const responses = await Promise.allSettled(
+      Object.values(ServerEndpoint).map((x) => x()),
+    );
 
-    const failIndexes: string[] = []
-    const tempData: IServiceData = {} as IServiceData
+    const failIndexes: string[] = [];
+    const tempData: IServiceData = {} as IServiceData;
     for (const res of responses) {
       if (res.status === "fulfilled") {
-        if (!res.value.data) failIndexes.push(`${picocolors.underline(res.value.key)}: ${res.value.error}`);
+        if (!res.value.data)
+          failIndexes.push(
+            `${picocolors.underline(res.value.key)}: ${res.value.error}`,
+          );
         else {
-          tempData[res.value.key] = res.value.data as any
-          SequenceUtilities.DEBUG_MODE && note(JSON.stringify(SequenceUtilities.ServiceData[res.value.key]), "[DEBUG]")
+          tempData[res.value.key] = res.value.data as any;
+          SequenceUtilities.DEBUG_MODE &&
+            note(
+              JSON.stringify(SequenceUtilities.ServiceData[res.value.key]),
+              "[DEBUG]",
+            );
         }
       }
     }
     if (failIndexes.length) {
-      sp.stop("Hubo un error al contactar con el servidor")
-      log.error(`Fallaron los siguientes indices:\n${failIndexes.join("\n")}`)
-      throw new ApiError()
+      sp.stop("Hubo un error al contactar con el servidor");
+      log.error(`Fallaron los siguientes indices:\n${failIndexes.join("\n")}`);
+      throw new ApiError();
     }
-    SequenceUtilities.ServiceData = Object.freeze(tempData)
-    sp.stop("Información obtenida")
+    SequenceUtilities.ServiceData = Object.freeze(tempData);
+    sp.stop("Información obtenida");
   }
 
   /**
@@ -251,6 +265,14 @@ export class SequenceUtilities {
     cancel(
       `Ha ocurrido un error en el [Paso ${this.STEP}]:\n${(e as Error).message}`,
     );
+    const x = await select({
+      message: `Presiona ${picocolors.bgWhite("ENTER")} para salir`,
+      initialValue: "0",
+      options: [{ value: "0", label: "ENTER" }],
+    });
+    if (isCancel(x)) {
+      cancel(SafeExitMessage)
+    }
     return process.exit(0);
   }
 

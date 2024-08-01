@@ -8,7 +8,7 @@ import {
 	text,
 } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
+import { exit } from "node:process";
 
 type Options = Extract<TextOptions, PasswordOptions>;
 

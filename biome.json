@@ -3,12 +3,14 @@
 	"files": {
 		"include": [
 			"./*.json",
+			"./scripts/*.mjs",
 			"./apps/**/src/**",
 			"./apps/**/*.{js,ts,json}",
 			"./packages/**/src/**",
 			"./packages/**/*.{js,ts,json}",
-			"./apps/**/scripts/**"
-		]
+			"./packages/*.*"
+		],
+		"ignore": ["dist", "node_modules", ".turbo"]
 	},
 	"organizeImports": {
 		"enabled": true

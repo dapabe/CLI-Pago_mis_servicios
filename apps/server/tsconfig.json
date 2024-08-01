@@ -15,12 +15,12 @@
 		"baseUrl": ".",
 		"rootDir": "src",
 		"types": ["node"],
-		"typeRoots": ["./node_modules/@types"],
+		"typeRoots": ["./node_modules/@types", "./node_modules/env-types"],
 		"lib": ["esnext"],
 		"paths": {
 			"#/*": ["./src/*"]
 		}
 	},
-	"include": ["src", "../../tsconfig/global.d.ts"],
-	"exclude": ["node_modules"]
+	"include": ["src"],
+	"exclude": ["node_modules", "dist"]
 }

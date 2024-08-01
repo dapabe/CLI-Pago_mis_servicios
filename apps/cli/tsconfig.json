@@ -14,12 +14,12 @@
 		"baseUrl": ".",
 		"rootDir": "src",
 		"types": ["node"],
-		"typeRoots": ["./node_modules/@types"],
+		"typeRoots": ["./node_modules/@types", "./node_modules/@repo/env-types"],
 		"lib": ["esnext"],
 		"paths": {
 			"#/*": ["./src/*"]
 		}
 	},
-	"include": ["src", "../../tsconfig/global.d.ts"],
-	"exclude": ["node_modules"]
+	"include": ["src", "./node_modules/@repo/env-types/global/cli-env.d.ts"],
+	"exclude": ["node_modules", "dist"]
 }

@@ -3,7 +3,7 @@ import type { IUserData } from "#/schemas/userData.schema";
 import type { IEditAction, IPromptAction } from "#/types/generic.js";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
+import { exit } from "node:process";
 
 export async function selectMenuActionPrompt(
 	userData: IUserData,

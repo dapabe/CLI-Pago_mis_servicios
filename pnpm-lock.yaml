@@ -17,6 +17,9 @@ importers:
       dotenv:
         specifier: 16.4.5
         version: 16.4.5
+      dotenv-cli:
+        specifier: 7.4.2
+        version: 7.4.2
       turbo:
         specifier: 2.0.9
         version: 2.0.9
@@ -75,6 +78,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.2.2
         version: 19.2.2
+      '@repo/env-types':
+        specifier: workspace:*
+        version: link:../../packages/env-types
       '@types/crypto-js':
         specifier: 4.2.2
         version: 4.2.2
@@ -133,6 +139,9 @@ importers:
       '@biomejs/biome':
         specifier: 1.8.3
         version: 1.8.3
+      '@repo/env-types':
+        specifier: workspace:*
+        version: link:../../packages/env-types
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -154,6 +163,16 @@ importers:
       typescript:
         specifier: 5.5.3
         version: 5.5.3
+
+  packages/env-types:
+    dependencies:
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      typescript:
+        specifier: 5.5.4
+        version: 5.5.4
 
 packages:
 
@@ -1532,6 +1551,14 @@ packages:
   dot-prop@9.0.0:
     resolution: {integrity: sha512-1gxPBJpI/pcjQhKgIU91II6Wkay+dLcN3M6rf2uwP8hRur3HtQXjVrdAK3sjC0piaEuxzMwjXChcETiJl47lAQ==}
     engines: {node: '>=18'}
+
+  dotenv-cli@7.4.2:
+    resolution: {integrity: sha512-SbUj8l61zIbzyhIbg0FwPJq6+wjbzdn9oEtozQpZ6kW2ihCcapKVZj49oCT3oPM+mgQm+itgvUQcG5szxVrZTA==}
+    hasBin: true
+
+  dotenv-expand@10.0.0:
+    resolution: {integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==}
+    engines: {node: '>=12'}
 
   dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
@@ -4203,6 +4230,15 @@ snapshots:
   dot-prop@9.0.0:
     dependencies:
       type-fest: 4.23.0
+
+  dotenv-cli@7.4.2:
+    dependencies:
+      cross-spawn: 7.0.3
+      dotenv: 16.4.5
+      dotenv-expand: 10.0.0
+      minimist: 1.2.8
+
+  dotenv-expand@10.0.0: {}
 
   dotenv@16.4.5: {}
 

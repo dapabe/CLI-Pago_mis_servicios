@@ -1,5 +1,5 @@
 import { cancel, log } from "@clack/prompts";
-import { exit } from "process";
+import { exit } from "node:process";
 import semver from "semver";
 import type { z } from "zod";
 import type { ZodSemverUnbranded } from "zod-semver";

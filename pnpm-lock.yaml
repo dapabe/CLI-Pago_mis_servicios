@@ -32,6 +32,9 @@ importers:
       '@msgpack/msgpack':
         specifier: 3.0.0-beta2
         version: 3.0.0-beta2
+      '@repo/env-types':
+        specifier: workspace:^
+        version: link:../../packages/env-types
       crypto-js:
         specifier: 4.2.0
         version: 4.2.0
@@ -78,9 +81,6 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.2.2
         version: 19.2.2
-      '@repo/env-types':
-        specifier: workspace:*
-        version: link:../../packages/env-types
       '@types/crypto-js':
         specifier: 4.2.2
         version: 4.2.2
@@ -111,6 +111,9 @@ importers:
       '@msgpack/msgpack':
         specifier: 3.0.0-beta2
         version: 3.0.0-beta2
+      '@repo/env-types':
+        specifier: workspace:^
+        version: link:../../packages/env-types
       drizzle-orm:
         specifier: 0.32.1
         version: 0.32.1(@libsql/client@0.7.0)
@@ -139,9 +142,6 @@ importers:
       '@biomejs/biome':
         specifier: 1.8.3
         version: 1.8.3
-      '@repo/env-types':
-        specifier: workspace:*
-        version: link:../../packages/env-types
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21

@@ -1,4 +1,4 @@
-/// <reference path="./base-env.ts" />
+/// <reference path="../../global.d.ts" />
 
 interface RepoEnvs {
   SERVER_HOST: string

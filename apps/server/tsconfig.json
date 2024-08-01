@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "esnext",
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "Bundler",
 		"esModuleInterop": true,
 		"strict": true,
 		"skipLibCheck": true,
@@ -15,12 +15,12 @@
 		"baseUrl": ".",
 		"rootDir": "src",
 		"types": ["node"],
-		"typeRoots": ["./node_modules/@types", "./node_modules/env-types"],
+		"typeRoots": ["./node_modules/@types"],
 		"lib": ["esnext"],
 		"paths": {
 			"#/*": ["./src/*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "./env.d.ts"],
 	"exclude": ["node_modules", "dist"]
 }

@@ -1,16 +1,14 @@
-import { z } from "zod";
+import { RepoEnvSchema } from "@repo/env-types";
+import type { } from "@repo/env-types";
 
-
-export const envSchema = z.object({
-  env: z.enum(["development", "production", "backoffice"]).default("development"),
-  host: z.string().trim().default("localhost"),
-  port: z.coerce.number().default(3000),
-  db_url: z.string().url(),
-  db_m_token: z.string().trim().min(1),
-  db_c_token: z.string().trim().min(1),
-})
-
-export const TypedEnv = envSchema.parse({
+export const TypedEnv = RepoEnvSchema.pick({
+  env: true,
+  host: true,
+  port: true,
+  db_url: true,
+  db_m_token: true,
+  db_c_token: true
+}).parse({
   env: process.env.NODE_ENV,
   host: process.env.SERVER_HOST,
   port: process.env.SERVER_PORT,

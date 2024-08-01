@@ -4,9 +4,10 @@
 	"globalEnv": ["NODE_ENV"],
 	"tasks": {
 		"packages:build": {
-			"cache": false
+			"cache": true
 		},
 		"cli:build": {
+			"dependsOn": ["packages:build"],
 			"persistent": false,
 			"cache": false,
 			"env": ["BACKEND_ENDPOINT"]

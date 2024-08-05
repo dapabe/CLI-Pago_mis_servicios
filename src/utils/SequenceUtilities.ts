@@ -70,9 +70,10 @@ export class SequenceUtilities {
 	static ServiceData: IServiceData = {} as IServiceData;
 	static {
 		const res = EnvSchema.safeParse({
-			stage: process.env.NODE_ENV,
-			backend_endpoint: process.env.BACKEND_ENDPOINT,
+			stage: "__APP-STAGE",
+			backend_endpoint: "__API-ENDPOINT",
 		});
+
 		if (res.error) {
 			log.error(
 				conjunctionList(
@@ -110,7 +111,9 @@ export class SequenceUtilities {
 			}
 		}
 		if (failIndexes.length) {
-			sp.stop("Hubo un error al contactar con el servidor");
+			sp.stop(
+				`Hubo un error al contactar con el servidor: ${picocolors.bgWhite(SequenceUtilities.ENV.backend_endpoint)}`,
+			);
 			log.error(`Falló el indice: ${conjunctionList(failIndexes)}`);
 			throw new ApiError();
 		}
@@ -271,9 +274,10 @@ export class SequenceUtilities {
 	/** Terminate program with an unknown error successfully. */
 	protected async exceptionTermination(e: unknown) {
 		await this.closeWeb();
-		log.info(
-			"Prueba ejecutar el CLI con el argumento '--debug' para mayor detalle \ny replica los pasos",
-		);
+		!SequenceUtilities.DEBUG_MODE &&
+			log.info(
+				"Prueba ejecutar el CLI con el argumento '--debug'\npara mayor detalle y replica los pasos",
+			);
 		cancel(
 			`Ha ocurrido un error en el [Paso ${this.STEP}]:\n${(e as Error).message}`,
 		);

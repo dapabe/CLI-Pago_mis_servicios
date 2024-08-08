@@ -1,30 +1,28 @@
 #!/usr/bin/env node
+import fs from "node:fs/promises";
+import { exit } from "node:process";
 import { intro, log, note } from "@clack/prompts";
 import isOnline from "is-online";
 import nodeCleanup from "node-cleanup";
-import fs from "node:fs/promises";
-import { exit } from "node:process";
 import picocolors from "picocolors";
+import { firefox } from "playwright-core";
 import {
 	AppPackage,
 	ContextRouteURLs,
 	generatedFileName,
 } from "./constants/random";
+import type { ISupportedServices } from "./constants/services";
 import { type BillData, StepsToLastBill } from "./constants/steps-to-last-bill";
+import { chooseBillToPayPrompt } from "./prompts/bill-context/chooseBillToPay.prompt";
+import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { selectMenuActionPrompt } from "./prompts/selectMenuAction.prompt";
 import { changePasswordPrompt } from "./prompts/startup/changePassword.prompt";
 import { decryptPrompt } from "./prompts/startup/decrypt.prompt";
 import { chooseSupportedServicePrompt } from "./prompts/supported-services/chooseSupportedService.prompt";
-
-import { ServiceOnRevision } from "./constants/service-on-revision";
-import type { ISupportedServices } from "./constants/services";
-import { chooseBillToPayPrompt } from "./prompts/bill-context/chooseBillToPay.prompt";
-import { choosePaymentMenuPrompt } from "./prompts/payment-methods/choosePaymentMenu.prompt";
 import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import type { IBillContext } from "./types/generic";
-import { getServicesWithAllFilledLogins, sortBills } from "./utils/random";
 import { SequenceUtilities } from "./utils/SequenceUtilities";
-import { firefox } from "playwright-core";
+import { getServicesWithAllFilledLogins, sortBills } from "./utils/random";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -35,7 +33,7 @@ nodeCleanup((exitCode) =>
 	),
 );
 
-class Sequence extends SequenceUtilities {
+export class Sequence extends SequenceUtilities {
 	public async initialize() {
 		intro(picocolors.inverse(` v ${AppPackage.version} `));
 		if (SequenceUtilities.DEBUG_MODE)
@@ -45,15 +43,20 @@ class Sequence extends SequenceUtilities {
 			"CLI-Pago_mis_servicios",
 		);
 		log.info(`Creado y mantenido por ${picocolors.blue(AppPackage.author)}`);
-		log.warning(
+		log.warn(
 			`Si estas teniendo problemas usando la aplicación compartelo \nen: ${picocolors.underline(AppPackage.repository.url)}`,
 		);
 
 		try {
-			await this.getApiResponses();
+			if (!SequenceUtilities.SKIP_SERVER) {
+				await this.getApiResponses();
+			} else
+				log.warn(
+					`Información del servidor omitida, usando ${picocolors.underline("statuses")} nativos.`,
+				);
 			await this.#checkFile();
 		} catch (error) {
-			this.exceptionTermination(error)
+			this.exceptionTermination(error);
 		}
 	}
 
@@ -187,7 +190,13 @@ class Sequence extends SequenceUtilities {
 		log.warning("Esto puede tardar un poco.");
 
 		const results = await Promise.allSettled(
-			currentSelection.map((x) => this.validateService(x.service, x.fields)),
+			currentSelection.map((x) =>
+				this.validateService(
+					x.service,
+					Sequence.ServiceData.statuses[x.service],
+					x.fields,
+				),
+			),
 		);
 		for (const res of results) {
 			if (res.status === "fulfilled") {
@@ -245,7 +254,7 @@ class Sequence extends SequenceUtilities {
 			.map<IBillContext>(([service, data]) => ({
 				service,
 				data,
-				onRevision: ServiceOnRevision[service],
+				onRevision: Sequence.ServiceData.statuses[service],
 			}))
 			.sort(sortBills);
 		const billsToPay = bills.filter(
@@ -270,6 +279,6 @@ class Sequence extends SequenceUtilities {
 			}
 		}
 	}
-};
+}
 
-(new Sequence().initialize)();
+new Sequence().initialize();

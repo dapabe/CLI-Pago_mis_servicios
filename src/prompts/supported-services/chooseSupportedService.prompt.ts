@@ -1,17 +1,17 @@
+import { exit } from "node:process";
 import {
 	RequiredServiceFieldAmount,
 	SafeExitMessage,
 } from "@/constants/random.js";
-import { ServiceOnRevision } from "@/constants/service-on-revision.js";
 import {
 	type ISupportedServices,
 	SupportedServices,
 } from "@/constants/services.js";
+import { Sequence } from "@/index.js";
 import { ServiceLoginFieldsManager } from "@/schemas/serviceLoginField.schema.js";
 import type { IUserData } from "@/schemas/userData.schema.js";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 import { getDefaultsForSchema } from "zod-defaults";
 import { chooseServiceLoginFieldPrompt } from "./chooseServiceLoginField.prompt.js";
 import { editSupportedServiceField } from "./editSupportedServiceField.prompt.js";
@@ -25,7 +25,7 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 
 	const completionStatus = (service: ISupportedServices): string => {
 		const noExistence = !userData.serviceFields[service];
-		if (ServiceOnRevision[service]) return picocolors.red(service);
+		if (Sequence.ServiceData.statuses[service]) return picocolors.red(service);
 		if (noExistence) return service;
 		if (completedFields(service) === RequiredServiceFieldAmount)
 			return picocolors.green(service);
@@ -33,7 +33,8 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 	};
 
 	const hintStatus = (service: ISupportedServices) => {
-		if (ServiceOnRevision[service]) return picocolors.red("En revisión");
+		if (Sequence.ServiceData.statuses[service])
+			return picocolors.red("En revisión");
 		if (!userData.serviceFields[service]) return "";
 		return `${completedFields(service)}/${RequiredServiceFieldAmount} campos completados`;
 	};
@@ -60,7 +61,7 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 
 	if (chosenService === "exit") return await Promise.resolve();
 
-	if (ServiceOnRevision[chosenService])
+	if (Sequence.ServiceData.statuses[chosenService])
 		return await chooseSupportedServicePrompt(userData);
 
 	//  In case the field does not exists it has to be created for the next function

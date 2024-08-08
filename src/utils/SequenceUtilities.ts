@@ -5,8 +5,10 @@ import { ServerEndpoint } from "@/api/server";
 import { LoginFields } from "@/constants/login-fields";
 import { generatedFileName } from "@/constants/random";
 import { ServiceDashboards } from "@/constants/service-dashboards";
-import { ServiceOnRevision } from "@/constants/service-on-revision";
-import type { ISupportedServices } from "@/constants/services";
+import {
+	type ISupportedServices,
+	SupportedServices,
+} from "@/constants/services";
 import { StepsToLogin } from "@/constants/steps-to-login";
 import { StepsToPay } from "@/constants/steps-to-pay";
 import { EnvSchema, type IEnvSchema } from "@/constants/typed-env";
@@ -30,6 +32,7 @@ export class SequenceUtilities {
 	static ENV: IEnvSchema;
 	static DEV_MODE: boolean;
 	static DEBUG_MODE = process.argv.includes("--debug");
+	static SKIP_SERVER = process.argv.includes("--skip-server");
 
 	#_STEP = 0;
 	protected get STEP() {
@@ -67,7 +70,13 @@ export class SequenceUtilities {
 		{ page: Page; dashboard: string } | null
 	>();
 
-	static ServiceData: IServiceData = {} as IServiceData;
+	static ServiceData: IServiceData = {
+		statuses: {
+			[SupportedServices.enum.Aysa]: true,
+			[SupportedServices.enum.Edesur]: false,
+			[SupportedServices.enum.Telecentro]: false,
+		},
+	};
 	static {
 		const res = EnvSchema.safeParse({
 			stage: "__APP-STAGE",
@@ -115,7 +124,7 @@ export class SequenceUtilities {
 				`Hubo un error al contactar con el servidor: ${picocolors.bgWhite(SequenceUtilities.ENV.backend_endpoint)}`,
 			);
 			log.error(`Falló el indice: ${conjunctionList(failIndexes)}`);
-			throw new ApiError();
+			throw new ApiError(500, "Internal Server Error");
 		}
 		sp.stop("Información obtenida");
 	}
@@ -146,23 +155,31 @@ export class SequenceUtilities {
 	 */
 	protected async validateService(
 		service: ISupportedServices,
+		onRevision: boolean,
 		fields: Omit<IServiceLoginFields, "aliasRef">,
-	) {
+	): Promise<{
+		service: ISupportedServices;
+		data: null | { page: Page; dashboard: string };
+	}> {
 		try {
-			const defaultResult = { service, data: null };
-			if (ServiceOnRevision[service]) return defaultResult;
+			const defaultResult = { service, data: null } as any;
+			if (onRevision) return defaultResult;
 
-			const page = await this.#isPageAvailable(service);
+			const page = await this.#isPageAvailable(defaultResult.service);
 			if (!page) return defaultResult;
 
 			const goodResponse = await this.#navigateToDashboard(
 				page,
-				service,
+				defaultResult.service,
 				fields,
 			);
 			if (!goodResponse) return defaultResult;
 
-			return { service, data: { page, dashboard: ServiceDashboards[service] } };
+			defaultResult.data = {
+				page,
+				dashboard: ServiceDashboards[defaultResult.service],
+			};
+			return defaultResult;
 		} catch (error) {
 			return this.exceptionTermination(error);
 		}

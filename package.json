@@ -17,7 +17,7 @@
 		"build:dev": "node --env-file=.env.development scripts/bundler.mjs",
 		"build:prod": "node --env-file=.env.production scripts/bundler.mjs",
 		"gen:exe": "node scripts/create-bin.mjs",
-		"start": "node dist/index.cjs",
+		"start": "node --env-file=.env.production dist/index.cjs",
 		"serve": "node --env-file=.env.development dist/index.cjs",
 		"commitSemver": "changeset",
 		"addToChangelog": "changeset version"

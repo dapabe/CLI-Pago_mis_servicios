@@ -2,10 +2,10 @@ import type { IStoredPaymentMethod } from "@/schemas/paymentMethod.schema";
 import { InvalidPayMethodError } from "@/utils/errors/invalid-paymethod.error";
 import { conjunctionList } from "@/utils/random";
 import picocolors from "picocolors";
+import type { Page } from "playwright-core";
 import { CardBrand, type ICardBrand } from "./card";
 import { PayFields } from "./pay-fields";
 import { type ISupportedServices, SupportedServices } from "./services";
-import { Page } from "playwright-core";
 
 type Opts = (page: Page, data: IStoredPaymentMethod) => Promise<null | string>;
 

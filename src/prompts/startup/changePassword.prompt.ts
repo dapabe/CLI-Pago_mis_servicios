@@ -1,6 +1,6 @@
+import { exit } from "node:process";
 import { SafeExitMessage } from "@/constants/random";
 import { cancel, isCancel, password } from "@clack/prompts";
-import { exit } from "process";
 
 export async function changePasswordPrompt(userPass: string): Promise<string> {
 	const answer = await password({

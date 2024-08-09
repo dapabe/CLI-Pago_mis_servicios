@@ -14,11 +14,11 @@
 	"scripts": {
 		"prepare": "husky",
 		"prepublishOnly": "npm run build",
-		"build:dev": "node --env-file=.env.development scripts/bundler.mjs",
-		"build:prod": "node --env-file=.env.production scripts/bundler.mjs",
-		"gen:exe": "node scripts/create-bin.mjs",
-		"start": "node --env-file=.env.production dist/index.cjs",
-		"serve": "node --env-file=.env.development dist/index.cjs",
+		"build:dev": "bun --env-file=.env.development --ignore-scripts scripts/bundler.mjs",
+		"build:prod": "bun --env-file=.env.production --ignore-scripts scripts/bundler.mjs",
+		"gen:exe": "bun build --compile --minify --target=bun-windows-x64-modern dist/index.js --outfile dist/targets",
+		"start": "bun --env-file=.env.production dist/index.cjs",
+		"serve": "bun --env-file=.env.development dist/index.cjs",
 		"commitSemver": "changeset",
 		"addToChangelog": "changeset version"
 	},
@@ -26,12 +26,12 @@
 		"@clack/prompts": "0.7.0",
 		"@msgpack/msgpack": "3.0.0-beta2",
 		"crypto-js": "4.2.0",
+		"electron": "31.3.1",
 		"is-online": "10.0.0",
 		"node-cleanup": "^2.1.2",
 		"picocolors": "1.0.1",
 		"playwright-core": "1.45.3",
 		"semver": "7.6.2",
-		"typescript": "^5.5.2",
 		"update-notifier": "^7.0.0",
 		"zod": "3.23.8",
 		"zod-defaults": "0.1.3",
@@ -42,15 +42,14 @@
 		"@changesets/cli": "^2.27.6",
 		"@commitlint/cli": "^19.3.0",
 		"@commitlint/config-conventional": "^19.2.2",
+		"@types/bun": "latest",
 		"@types/crypto-js": "4.2.2",
-		"@types/node": "^20.14.9",
 		"@types/node-cleanup": "2.1.5",
 		"@types/semver": "7.5.8",
 		"@types/update-notifier": "6.0.8",
-		"esbuild": "0.23.0",
-		"esbuild-plugin-replace": "1.4.0",
 		"husky": "^9.0.11",
 		"lint-staged": "^15.2.7",
-		"postject": "1.0.0-alpha.6"
-	}
+		"typescript": "5.5.4"
+	},
+	"trustedDependencies": ["playwright-core"]
 }

@@ -1,4 +1,4 @@
-import { Page } from "playwright-core";
+import type { Page } from "playwright-core";
 import { ServicePages } from "./service-pages";
 import { type ISupportedServices, SupportedServices } from "./services";
 

@@ -79,8 +79,8 @@ export class SequenceUtilities {
 	};
 	static {
 		const res = EnvSchema.safeParse({
-			stage: "__APP-STAGE",
-			backend_endpoint: "__API-ENDPOINT",
+			stage: process.env.NODE_ENV,
+			backend_endpoint: process.env.BACKEND_ENDPOINT,
 		});
 
 		if (res.error) {
@@ -177,7 +177,7 @@ export class SequenceUtilities {
 
 			defaultResult.data = {
 				page,
-				dashboard: ServiceDashboards[defaultResult.service],
+				dashboard: ServiceDashboards[service],
 			};
 			return defaultResult;
 		} catch (error) {

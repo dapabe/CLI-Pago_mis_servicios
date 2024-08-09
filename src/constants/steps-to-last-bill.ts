@@ -3,8 +3,8 @@ import { DesignError } from "@/utils/errors/design.error";
 import { LocatorError } from "@/utils/errors/locator.error";
 import { normalizeNumber } from "@/utils/random";
 import { TranslatedLocator } from "@/utils/translation";
+import type { Page } from "playwright-core";
 import { type ISupportedServices, SupportedServices } from "./services";
-import { Page } from "playwright-core";
 
 export type BillData = {
 	bill: number;

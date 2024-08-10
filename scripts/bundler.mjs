@@ -10,7 +10,7 @@ const res = await Bun.build({
 	entrypoints: ["./src/index.ts"],
 	outdir: "./dist",
 	minify: !devMode,
-	target: "node",
+	target: "bun",
 	external: [
 		"*.png", //  playwright-core
 		// "./loader", //  playwright-core

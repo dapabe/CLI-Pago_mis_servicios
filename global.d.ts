@@ -7,3 +7,7 @@ interface Envs {
 declare namespace NodeJS {
   interface ProcessEnv extends Partial<Envs> { }
 }
+
+declare module "bun" {
+  interface Env extends Partial<Envs> { }
+}

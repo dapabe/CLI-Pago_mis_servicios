@@ -3,7 +3,6 @@ import type { IStoredPaymentMethod } from "@/schemas/paymentMethod.schema";
 import { conjunctionList } from "@/utils/random";
 import { cancel, confirm, isCancel, multiselect } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 type Refs = Required<Pick<IStoredPaymentMethod, "uuid" | "payAlias">>;
 
@@ -21,7 +20,7 @@ export async function deletePaymentMethodPrompt(
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	if (!answer.length) return null;
@@ -35,7 +34,7 @@ export async function deletePaymentMethodPrompt(
 
 	if (isCancel(reafirm)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	if (!reafirm) return answer;

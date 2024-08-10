@@ -1,4 +1,3 @@
-import { exit } from "node:process";
 import {
 	RequiredServiceFieldAmount,
 	SafeExitMessage,
@@ -56,7 +55,7 @@ export async function chooseSupportedServicePrompt(userData: IUserData) {
 	});
 	if (isCancel(chosenService)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	if (chosenService === "exit") return await Promise.resolve();

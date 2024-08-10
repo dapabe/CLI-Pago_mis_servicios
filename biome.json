@@ -14,7 +14,8 @@
 				"noStaticOnlyClass": "off"
 			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "off" //	Case: Recursive self invoking functions
 			},
 			"suspicious": {
 				"noExplicitAny": "off"

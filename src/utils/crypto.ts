@@ -2,7 +2,7 @@ import type { IEncryptedData } from "@/schemas/encryptedData.schema";
 import type { IUserData } from "@/schemas/userData.schema";
 import CryptoJS from "crypto-js";
 import nCrypto from "node:crypto";
-import pkg from "../../package.json";
+import pkg from "package.json";
 
 export function encryptData(password: string, data: object): IEncryptedData {
 	const salt = CryptoJS.lib.WordArray.random(16).toString();

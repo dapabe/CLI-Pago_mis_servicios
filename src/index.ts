@@ -1,16 +1,14 @@
-#!/usr/bin/env node
 import fs from "node:fs/promises";
 import { exit } from "node:process";
-import { intro, log, note } from "@clack/prompts";
+import { log } from "@clack/prompts";
 import { $ } from "bun";
 import isOnline from "is-online";
 import nodeCleanup from "node-cleanup";
 import picocolors from "picocolors";
 import { firefox } from "playwright-core";
 import {
-	AppPackage,
 	ContextRouteURLs,
-	generatedFileName,
+	generatedFileName
 } from "./constants/random";
 import type { ISupportedServices } from "./constants/services";
 import { type BillData, StepsToLastBill } from "./constants/steps-to-last-bill";
@@ -36,18 +34,6 @@ nodeCleanup((exitCode) =>
 
 export class Sequence extends SequenceUtilities {
 	public async initialize() {
-		intro(picocolors.inverse(` v ${AppPackage.version} `));
-		if (SequenceUtilities.DEBUG_MODE)
-			log.warning(picocolors.bgYellow("[DEBUG MODE]"));
-		note(
-			"Una herramienta moderna para pagar tus \ncuentas de forma segura y automatica.",
-			"CLI-Pago_mis_servicios",
-		);
-		log.info(`Creado y mantenido por ${picocolors.blue(AppPackage.author)}`);
-		log.warn(
-			`Si estas teniendo problemas usando la aplicación compartelo \nen: ${picocolors.underline(AppPackage.repository.url)}`,
-		);
-
 		try {
 			if (!SequenceUtilities.SKIP_SERVER) {
 				await this.getApiResponses();
@@ -281,10 +267,10 @@ export class Sequence extends SequenceUtilities {
 		}
 	}
 }
-new Sequence().initialize();
 
 (async () => {
 	try {
+		await new Sequence().initialize();
 		$`pause`;
 		for await (const _line of console) {
 			break;

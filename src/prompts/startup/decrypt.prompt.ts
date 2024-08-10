@@ -4,8 +4,7 @@ import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
 import { decryptData, encryptData } from "@/utils/crypto.js";
 import { cancel, isCancel, password } from "@clack/prompts";
 import pkg from "package.json";
-import { exit } from "process";
-import fs from "node:fs/promises"
+import fs from "node:fs/promises";
 
 export async function decryptPrompt(
 	encryptedData: IEncryptedData,
@@ -24,7 +23,7 @@ export async function decryptPrompt(
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	const decryptedData = decryptData(answer, encryptedData);
@@ -49,7 +48,7 @@ export async function decryptPrompt(
 		cancel(
 			`La estructura de datos almacenada no es correcta, esto puede haber pasado \nsi es manipulado de otra forma que no sea con esta herramienta. \n${JSON.stringify(parsedData.error, null, 2)}`,
 		);
-		return exit(0);
+		return process.exit(0);
 	}
 
 	return {

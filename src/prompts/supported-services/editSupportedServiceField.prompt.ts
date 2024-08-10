@@ -8,7 +8,6 @@ import type { IUserData } from "@/schemas/userData.schema";
 import { TranslatedInput } from "@/utils/translation";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 import { secureTextPrompt } from "../secureText.prompt";
 
 export async function editSupportedServiceField(
@@ -35,7 +34,7 @@ export async function editSupportedServiceField(
 
 		if (isCancel(answer)) {
 			cancel(SafeExitMessage);
-			exit(0);
+			process.exit(0);
 		}
 		return answer;
 	} else {

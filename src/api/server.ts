@@ -3,7 +3,7 @@ import { SequenceUtilities } from "@/utils/SequenceUtilities";
 import { ApiError } from "@/utils/errors/API.error";
 import type { BaseError } from "@/utils/errors/base.error";
 import { log } from "@clack/prompts";
-import * as mspack from "@msgpack/msgpack";
+import { decode } from "@msgpack/msgpack";
 
 type ResError = {
 	reason: string;
@@ -17,7 +17,7 @@ const API = <T>(key: IServiceDataKeys, nextURL: string): Promise<ApiRes<T>> =>
 		.then(async (res) => {
 			const statusBad = [500, 404].some((x) => x === res.status);
 			if (!res.ok || statusBad) throw new ApiError(res.status, res.statusText);
-			const data = mspack.decode(new Uint8Array(await res.arrayBuffer())) as T;
+			const data = decode(new Uint8Array(await res.arrayBuffer())) as T;
 			return { key, data };
 		})
 		.catch((x: BaseError) => {

@@ -1,5 +1,4 @@
 import { cancel, log } from "@clack/prompts";
-import { exit } from "process";
 import semver from "semver";
 import type { z } from "zod";
 import type { ZodSemverUnbranded } from "zod-semver";
@@ -25,7 +24,7 @@ export class ZodSchemaManager<LastVer extends ZodSemverUnbranded, Instance> {
 			if (semver.valid(key)) this.addVersion(key, value as any);
 			else {
 				cancel(`${this.constructor.name}: ${key} is invalid Semver.`);
-				exit(0);
+				process.exit(0);
 			}
 		}
 	}

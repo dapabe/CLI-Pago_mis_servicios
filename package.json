@@ -17,9 +17,9 @@
 		"prepublishOnly": "npm run build",
 		"build:dev": "bun --env-file=.env.development --ignore-scripts scripts/bundler.mjs",
 		"build:prod": "bun --env-file=.env.production --ignore-scripts scripts/bundler.mjs",
-		"compile": "bun scripts/compile.mjs",
-		"start": "bun --env-file=.env.production dist/index.cjs",
-		"serve": "bun --env-file=.env.development dist/index.cjs",
+		"compile": "bunx scripts/compile.mjs",
+		"start:dev": "bun --env-file=.env.development dist/index.js",
+		"start:prod": "bun --env-file=.env.production dist/index.js",
 		"commitSemver": "changeset",
 		"addToChangelog": "changeset version"
 	},

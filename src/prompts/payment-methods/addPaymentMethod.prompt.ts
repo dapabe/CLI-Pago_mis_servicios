@@ -8,7 +8,6 @@ import { CardBrand, CardType } from "@/constants/card";
 import type { ISupportedServices } from "@/constants/services";
 import type { IUserData } from "@/schemas/userData.schema";
 import * as prompt from "@clack/prompts";
-import { exit } from "process";
 import { addPaymentAliasPrompt } from "./addPaymentAlias.prompt";
 
 export async function addPaymentMethodPrompt(
@@ -86,7 +85,7 @@ export async function addPaymentMethodPrompt(
 		{
 			onCancel() {
 				prompt.cancel(SafeExitMessage);
-				exit(0);
+				process.exit(0);
 			},
 		},
 	);

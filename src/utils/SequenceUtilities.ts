@@ -16,7 +16,7 @@ import { firstTimePrompt } from "@/prompts/startup/firstTime.prompt";
 import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
 import { type IUserData, UserDataManager } from "@/schemas/userData.schema";
 import type { IServiceData } from "@/types/api";
-import { cancel, log, note, outro, spinner } from "@clack/prompts";
+import { cancel, intro, log, note, outro, spinner } from "@clack/prompts";
 import picocolors from "picocolors";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import { getDefaultsForSchema } from "zod-defaults";
@@ -24,6 +24,7 @@ import { encryptData } from "./crypto";
 import { ApiError } from "./errors/API.error";
 import { HandledZodError } from "./errors/handled-zod.error";
 import { conjunctionList } from "./random";
+import pkg from "package.json";
 
 /**
  *  Used to hide not so important things \
@@ -79,14 +80,35 @@ export class SequenceUtilities {
 		},
 	};
 	static {
-		const res = EnvSchema.safeParse({
-			stage: process.env.NODE_ENV,
-			backend_endpoint: process.env.BACKEND_ENDPOINT,
-		});
+		try {
+			intro(picocolors.inverse(` v ${pkg.version} `));
+			if (SequenceUtilities.DEBUG_MODE) {
+				log.warning(picocolors.bgYellow("[DEBUG MODE]"));
+			}
+			note(
+				"Una herramienta moderna para pagar tus \ncuentas de forma segura y automatica.",
+				pkg.appName,
+			);
+			log.info(`Creado y mantenido por ${picocolors.blue(pkg.author)}`);
+			log.warn(
+				`Si estas teniendo problemas usando la aplicación compartelo \nen: ${picocolors.underline(pkg.repository.url)}`,
+			);
 
-		if (res.error) throw new HandledZodError(res.error);
-		SequenceUtilities.ENV = res.data;
-		SequenceUtilities.DEV_MODE = res.data.stage === "development";
+			const res = EnvSchema.safeParse({
+				stage: process.env.NODE_ENV,
+				backend_endpoint: process.env.BACKEND_ENDPOINT,
+			});
+
+			if (res.error) throw new HandledZodError(res.error);
+			SequenceUtilities.ENV = res.data;
+			SequenceUtilities.DEV_MODE = res.data.stage === "development";
+
+		} catch (error) {
+			cancel(
+				`Ha ocurrido un error al iniciar el CLI:\n${(error as Error).message}`,
+			);
+			process.exit(0)
+		}
 	}
 
 	//  Utilities

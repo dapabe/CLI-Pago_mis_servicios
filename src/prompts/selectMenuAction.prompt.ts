@@ -3,7 +3,6 @@ import type { IUserData } from "@/schemas/userData.schema";
 import type { IEditAction, IPromptAction } from "@/types/generic.js";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 export async function selectMenuActionPrompt(
 	userData: IUserData,
@@ -21,8 +20,8 @@ export async function selectMenuActionPrompt(
 				value: "next",
 				hint: firstTime
 					? picocolors.yellow(
-							"Tienes que agregar al menos 1 cuenta para ver y pagar tu servicios",
-						)
+						"Tienes que agregar al menos 1 cuenta para ver y pagar tu servicios",
+					)
 					: "Ver ultimas cuentas pagadas o a pagar",
 			},
 			{
@@ -55,7 +54,7 @@ export async function selectMenuActionPrompt(
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 	return answer;
 }

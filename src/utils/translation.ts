@@ -11,8 +11,8 @@ export const TranslatedInput = {
 
 export const TranslatedLocator = {
 	bill: {
-		0: "Monto a pagar",
-		1: "Fecha de vencimiento",
-		2: "Botón de pago",
+		1: "Monto a pagar",
+		2: "Fecha de vencimiento",
+		3: "Botón de pago",
 	},
 } as const;

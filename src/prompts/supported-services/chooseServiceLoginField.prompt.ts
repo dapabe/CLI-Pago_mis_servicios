@@ -5,7 +5,6 @@ import type { IUserData } from "@/schemas/userData.schema";
 import { TranslatedInput } from "@/utils/translation";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 export async function chooseServiceLoginFieldPrompt(
 	userData: IUserData,
@@ -61,7 +60,7 @@ export async function chooseServiceLoginFieldPrompt(
 
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	if (noPayMethods && answer === "aliasRef")

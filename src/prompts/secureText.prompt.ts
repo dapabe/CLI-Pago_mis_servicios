@@ -8,7 +8,6 @@ import {
 	text,
 } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 type Options = Extract<TextOptions, PasswordOptions>;
 
@@ -22,7 +21,7 @@ export async function secureTextPrompt(secureMode: boolean, options: Options) {
 
 		if (isCancel(answer)) {
 			cancel(SafeExitMessage);
-			exit(0);
+			process.exit(0);
 		}
 		return answer;
 	}
@@ -36,7 +35,7 @@ export async function secureTextPrompt(secureMode: boolean, options: Options) {
 
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	return answer;

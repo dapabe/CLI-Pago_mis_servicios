@@ -4,7 +4,6 @@ import type { IBillContext } from "@/types/generic";
 import { currencyFormat } from "@/utils/random";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 export async function chooseBillToPayPrompt(
 	currentBills: IBillContext[],
@@ -59,7 +58,7 @@ export async function chooseBillToPayPrompt(
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 
 	return answer;

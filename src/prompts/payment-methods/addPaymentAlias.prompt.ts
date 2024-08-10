@@ -2,7 +2,6 @@ import { SafeExitMessage } from "@/constants/random";
 import { StoredPaymentMethodManager } from "@/schemas/paymentMethod.schema";
 import { cancel, confirm, isCancel, text } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 
 export async function addPaymentAliasPrompt(alias?: string): Promise<string> {
 	const answer = await text({
@@ -14,7 +13,7 @@ export async function addPaymentAliasPrompt(alias?: string): Promise<string> {
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 	const proceed = await confirm({
 		message: `¿Estas seguro de llamarla '${picocolors.underline(answer)}'?`,
@@ -25,7 +24,7 @@ export async function addPaymentAliasPrompt(alias?: string): Promise<string> {
 
 	if (isCancel(proceed)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 	if (proceed) return answer;
 	return await addPaymentAliasPrompt(alias);

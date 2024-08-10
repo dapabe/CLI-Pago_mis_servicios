@@ -1,13 +1,12 @@
 import { SafeExitMessage } from "@/constants/random";
-
 import type { ISupportedServices } from "@/constants/services";
 import type { IUserData } from "@/schemas/userData.schema";
 import type { IUserService } from "@/schemas/userServiceField.schema";
 import { cancel, isCancel, select } from "@clack/prompts";
 import picocolors from "picocolors";
-import { exit } from "process";
 import { addPaymentMethodPrompt } from "./addPaymentMethod.prompt";
 import { deletePaymentMethodPrompt } from "./deletePaymentMethod.prompt";
+import type { IServiceLoginFields } from "@/schemas/serviceLoginField.schema";
 
 export async function choosePaymentMenuPrompt(userData: IUserData) {
 	const aliases = userData.paymentMethods.map((x) => ({
@@ -45,7 +44,7 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 	if (answer === "exit") return await Promise.resolve();
 
@@ -62,7 +61,7 @@ export async function choosePaymentMenuPrompt(userData: IUserData) {
 			//  Delete references in services
 			const refs: IUserService = {};
 			//  Filter services with no references
-			for (const [service, fields] of Object.entries(userData.serviceFields)) {
+			for (const [service, fields] of Object.entries(userData.serviceFields) as [ISupportedServices, IServiceLoginFields][]) {
 				if (results.includes(fields.aliasRef!)) {
 					refs[service] = { ...fields, aliasRef: null };
 				} else {

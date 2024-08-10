@@ -1,4 +1,3 @@
-import { exit } from "node:process";
 import { SafeExitMessage } from "@/constants/random";
 import { cancel, isCancel, password } from "@clack/prompts";
 
@@ -13,7 +12,7 @@ export async function changePasswordPrompt(userPass: string): Promise<string> {
 	});
 	if (isCancel(answer)) {
 		cancel(SafeExitMessage);
-		exit(0);
+		process.exit(0);
 	}
 	return answer;
 }

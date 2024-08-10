@@ -3,7 +3,7 @@ import { SequenceUtilities } from "@/utils/SequenceUtilities";
 import { ApiError } from "@/utils/errors/API.error";
 import type { BaseError } from "@/utils/errors/base.error";
 import { log } from "@clack/prompts";
-import mspack from "@msgpack/msgpack";
+import * as mspack from "@msgpack/msgpack";
 
 type ResError = {
 	reason: string;

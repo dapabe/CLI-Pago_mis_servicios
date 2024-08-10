@@ -2,6 +2,7 @@
 import fs from "node:fs/promises";
 import { exit } from "node:process";
 import { intro, log, note } from "@clack/prompts";
+import { $ } from "bun";
 import isOnline from "is-online";
 import nodeCleanup from "node-cleanup";
 import picocolors from "picocolors";
@@ -280,5 +281,17 @@ export class Sequence extends SequenceUtilities {
 		}
 	}
 }
-
 new Sequence().initialize();
+
+(async () => {
+	try {
+		$`pause`;
+		for await (const _line of console) {
+			break;
+		}
+	} catch (error) {
+		for await (const _line of console) {
+			break;
+		}
+	}
+})();

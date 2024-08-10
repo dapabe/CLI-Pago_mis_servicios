@@ -1,5 +1,6 @@
 {
 	"name": "cli-pago_mis_servicios",
+	"appName": "CLI-Pago_mis_servicios",
 	"version": "0.0.0",
 	"type": "module",
 	"description": "Modern Node.js Command Line Tool to pay bills automatically.",
@@ -16,7 +17,7 @@
 		"prepublishOnly": "npm run build",
 		"build:dev": "bun --env-file=.env.development --ignore-scripts scripts/bundler.mjs",
 		"build:prod": "bun --env-file=.env.production --ignore-scripts scripts/bundler.mjs",
-		"gen:exe": "bun build --compile --minify --target=bun-windows-x64-modern dist/index.js --outfile dist/targets",
+		"compile": "bun scripts/compile.mjs",
 		"start": "bun --env-file=.env.production dist/index.cjs",
 		"serve": "bun --env-file=.env.development dist/index.cjs",
 		"commitSemver": "changeset",

@@ -22,6 +22,7 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 import { getDefaultsForSchema } from "zod-defaults";
 import { encryptData } from "./crypto";
 import { ApiError } from "./errors/API.error";
+import { HandledZodError } from "./errors/handled-zod.error";
 import { conjunctionList } from "./random";
 
 /**
@@ -83,14 +84,7 @@ export class SequenceUtilities {
 			backend_endpoint: process.env.BACKEND_ENDPOINT,
 		});
 
-		if (res.error) {
-			log.error(
-				conjunctionList(
-					res.error.errors.map((x) => `${x.path.join("")}: ${x.message}`),
-				),
-			);
-			process.exit(1);
-		}
+		if (res.error) throw new HandledZodError(res.error);
 		SequenceUtilities.ENV = res.data;
 		SequenceUtilities.DEV_MODE = res.data.stage === "development";
 	}

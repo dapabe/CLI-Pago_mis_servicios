@@ -13,7 +13,6 @@
 	"main": "dist/index.js",
 	"bin": "dist/index.js",
 	"scripts": {
-		"prepare": "husky",
 		"prepublishOnly": "npm run build",
 		"build:dev": "bun --env-file=.env.development --ignore-scripts scripts/bundler.mjs",
 		"build:prod": "bun --env-file=.env.production --ignore-scripts scripts/bundler.mjs",
@@ -27,7 +26,6 @@
 		"@clack/prompts": "0.7.0",
 		"@msgpack/msgpack": "3.0.0-beta2",
 		"crypto-js": "4.2.0",
-		"electron": "31.3.1",
 		"is-online": "10.0.0",
 		"node-cleanup": "^2.1.2",
 		"picocolors": "1.0.1",
@@ -48,7 +46,6 @@
 		"@types/node-cleanup": "2.1.5",
 		"@types/semver": "7.5.8",
 		"@types/update-notifier": "6.0.8",
-		"husky": "^9.0.11",
 		"lint-staged": "^15.2.7",
 		"typescript": "5.5.4"
 	},

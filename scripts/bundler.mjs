@@ -16,8 +16,8 @@ const res = await Bun.build({
 		// "./loader", //  playwright-core
 	],
 	define: {
-		NODE_ENV: process.env.NODE_ENV,
-		BACKEND_ENDPOINT: process.env.BACKEND_ENDPOINT,
+		"Bun.env.NODE_ENV": `"${process.env.NODE_ENV}"`,
+		"Bun.env.BACKEND_ENDPOINT": `"${process.env.BACKEND_ENDPOINT}"`,
 	},
 });
 

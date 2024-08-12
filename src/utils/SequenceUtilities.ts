@@ -95,8 +95,8 @@ export class SequenceUtilities {
 			);
 
 			const res = EnvSchema.safeParse({
-				stage: process.env.NODE_ENV,
-				backend_endpoint: process.env.BACKEND_ENDPOINT,
+				stage: Bun.env.NODE_ENV,
+				backend_endpoint: Bun.env.BACKEND_ENDPOINT,
 			});
 
 			if (res.error) throw new HandledZodError(res.error);

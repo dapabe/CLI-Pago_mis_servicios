@@ -6,13 +6,15 @@ import {
 import { z } from "zod";
 import { StoredPaymentMethodManager } from "./paymentMethod.schema";
 
+type LastV = "0.0.0"
+
 /**
  * Generic login fields to services.
  */
-export class ServiceLoginFieldsSchema
-	extends ZodSchemaManager<"0.0.0", typeof ServiceLoginFieldsSchema>
-	implements SchemaUtilities
-{
+class ServiceLoginFieldsSchema
+	extends ZodSchemaManager<typeof ServiceLoginFieldsSchema, LastV>
+	implements SchemaUtilities {
+
 	static "0.0.0" = z.object({
 		username: z.string().nullable().default(null),
 		password: z.string().nullable().default(null),
@@ -23,7 +25,7 @@ export class ServiceLoginFieldsSchema
 	});
 
 	constructor() {
-		super(ServiceLoginFieldsSchema);
+		super(ServiceLoginFieldsSchema, "0.0.0")
 	}
 
 	getLastSchema() {
@@ -33,7 +35,5 @@ export class ServiceLoginFieldsSchema
 
 export const ServiceLoginFieldsManager = new ServiceLoginFieldsSchema();
 
-type T = typeof ServiceLoginFieldsSchema;
-
-export type IServiceLoginFields<V extends IValidVersions<T> = "0.0.0"> =
-	z.TypeOf<T[V]>;
+export type IServiceLoginFields<V extends IValidVersions<typeof ServiceLoginFieldsSchema> = LastV> =
+	z.TypeOf<typeof ServiceLoginFieldsSchema[V]>;

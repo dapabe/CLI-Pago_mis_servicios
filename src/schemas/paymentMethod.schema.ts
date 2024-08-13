@@ -7,10 +7,12 @@ import {
 import { TranslatedInput } from "@/utils/translation";
 import { z } from "zod";
 
-export class StoredPaymentMethodSchema
-	extends ZodSchemaManager<"0.0.0", typeof StoredPaymentMethodSchema>
-	implements SchemaUtilities
-{
+type LastV = "0.0.0"
+
+class StoredPaymentMethodSchema
+	extends ZodSchemaManager<typeof StoredPaymentMethodSchema, LastV>
+	implements SchemaUtilities {
+
 	static "0.0.0" = z.object({
 		fullName: z.string().trim().min(1, "El nombre no puede estar vacio."),
 		frontNumber: z.string().refine((val) => /^\d{14,16}$/.test(val), {
@@ -31,7 +33,7 @@ export class StoredPaymentMethodSchema
 	});
 
 	constructor() {
-		super(StoredPaymentMethodSchema);
+		super(StoredPaymentMethodSchema, "0.0.0")
 	}
 
 	getLastSchema() {
@@ -44,7 +46,5 @@ export const StoredPaymentMethodManager = new StoredPaymentMethodSchema();
 /**
  * Credit/debit card data structure.
  */
-type T = typeof StoredPaymentMethodSchema;
-
-export type IStoredPaymentMethod<V extends IValidVersions<T> = "0.0.0"> =
-	z.TypeOf<T[V]>;
+export type IStoredPaymentMethod<V extends IValidVersions<typeof StoredPaymentMethodSchema> = LastV> =
+	z.TypeOf<typeof StoredPaymentMethodSchema[V]>;

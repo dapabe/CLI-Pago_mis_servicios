@@ -18,8 +18,8 @@
 		"build:prod": "bun --env-file=.env.production --ignore-scripts scripts/bundler.mjs",
 		"compile": "bunx scripts/compile.mjs",
 		"fetch:server": "bun --env-file=.env.production scripts/fetch-server.mjs",
-		"start:dev": "bun --env-file=.env.development dist/index.js",
-		"start:prod": "bun --env-file=.env.production dist/index.js",
+		"start:dev": "bun --env-file=.env.development --sourcemap dist/index.js",
+		"start:prod": "bun --env-file=.env.production --sourcemap dist/index.js",
 		"commitSemver": "changeset",
 		"addToChangelog": "changeset version"
 	},

@@ -7,15 +7,18 @@ export type IValidVersions<V> = Extract<
 	keyof V,
 	`${number}.${number}.${number}`
 >;
+
 export interface SchemaUtilities {
-	getLastSchema(): z.ZodType;
+	getLastSchema(): z.ZodType
 }
 
-export class ZodSchemaManager<LastVer extends ZodSemverUnbranded, Instance> {
-	private versions = new Map<ZodSemverUnbranded, z.ZodType>();
+export class ZodSchemaManager<Instance, LastVersion extends string> {
+	private versions = new Map<string, z.ZodType>();
 	private latestVersion = "";
+	private lastVersion: LastVersion
 
-	protected constructor(instance: Instance) {
+	constructor(instance: Instance, lastVersion: LastVersion) {
+		this.lastVersion = lastVersion
 		this.populateManager(instance);
 	}
 
@@ -34,8 +37,8 @@ export class ZodSchemaManager<LastVer extends ZodSemverUnbranded, Instance> {
 		this.latestVersion = version;
 	}
 
-	getLastVersion() {
-		return this.latestVersion as LastVer;
+	public getLastVersion(): LastVersion {
+		return this.lastVersion
 	}
 
 	migrate<T>(

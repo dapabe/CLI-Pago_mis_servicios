@@ -18,6 +18,7 @@ const res = await Bun.build({
 	outdir: "./dist",
 	minify: !devMode,
 	target: "bun",
+	sourcemap: "external",
 	external: [
 		"*.png", //  playwright-core
 		// "./loader", //  playwright-core

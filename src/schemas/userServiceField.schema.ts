@@ -24,27 +24,26 @@ function createDynamicServiceField() {
 	return z.object(dynamic);
 }
 
+type LastV = "0.0.0"
+
 /**
  * User sensitive information data structure.
  */
-export class UserServiceSchema
-	extends ZodSchemaManager<"0.0.0", typeof UserServiceSchema>
-	implements SchemaUtilities
-{
+class UserServiceSchema
+	extends ZodSchemaManager<typeof UserServiceSchema, LastV>
+	implements SchemaUtilities {
 	static "0.0.0" = createDynamicServiceField();
 
 	constructor() {
-		super(UserServiceSchema);
+		super(UserServiceSchema, "0.0.0")
 	}
 
 	getLastSchema() {
 		return UserServiceSchema[this.getLastVersion()];
 	}
 }
-export const UserServiceManager = new UserServiceSchema();
+export const UserServiceManager = new UserServiceSchema()
 
-type T = typeof UserServiceSchema;
-
-export type IUserService<V extends IValidVersions<T> = "0.0.0"> = z.TypeOf<
-	T[V]
+export type IUserService<V extends IValidVersions<typeof UserServiceSchema> = LastV> = z.TypeOf<
+	typeof UserServiceSchema[V]
 >;

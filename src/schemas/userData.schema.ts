@@ -7,13 +7,15 @@ import { z } from "zod";
 import { StoredPaymentMethodManager } from "./paymentMethod.schema.js";
 import { UserServiceManager } from "./userServiceField.schema.js";
 
+type LastV = "0.0.0"
+
 /**
  * User sensitive information.
  */
-export class UserDataSchema
-	extends ZodSchemaManager<"0.0.0", typeof UserDataSchema>
-	implements SchemaUtilities
-{
+class UserDataSchema
+	extends ZodSchemaManager<typeof UserDataSchema, LastV>
+	implements SchemaUtilities {
+
 	static "0.0.0" = z.object({
 		secureMode: z.boolean().default(true),
 		serviceFields: UserServiceManager.getLastSchema().default({}),
@@ -24,7 +26,7 @@ export class UserDataSchema
 	});
 
 	constructor() {
-		super(UserDataSchema);
+		super(UserDataSchema, "0.0.0")
 	}
 
 	getLastSchema() {
@@ -34,6 +36,4 @@ export class UserDataSchema
 
 export const UserDataManager = new UserDataSchema();
 
-type T = typeof UserDataSchema;
-
-export type IUserData<V extends IValidVersions<T> = "0.0.0"> = z.TypeOf<T[V]>;
+export type IUserData<V extends IValidVersions<typeof UserDataSchema> = LastV> = z.TypeOf<typeof UserDataSchema[V]>;

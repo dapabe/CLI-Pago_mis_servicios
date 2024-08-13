@@ -1,7 +1,8 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
 	"files": {
-		"include": ["./*.*", "./src/**/*", "./tests/**/*.ts", "./scripts/**/*"]
+		"include": ["./*.*", "./src/**/*", "./tests/**/*.ts", "./scripts/**/*"],
+		"ignore": ["./node_modules/**", "./dist/**", "injected-data.ts"]
 	},
 	"organizeImports": {
 		"enabled": true
@@ -15,7 +16,7 @@
 			},
 			"style": {
 				"noNonNullAssertion": "off",
-				"noParameterAssign": "off" //	Case: Recursive self invoking functions
+				"noParameterAssign": "off"
 			},
 			"suspicious": {
 				"noExplicitAny": "off"

@@ -5,10 +5,7 @@ import { ServerEndpoint } from "@/api/server";
 import { LoginFields } from "@/constants/login-fields";
 import { generatedFileName } from "@/constants/random";
 import { ServiceDashboards } from "@/constants/service-dashboards";
-import {
-	type ISupportedServices,
-	SupportedServices,
-} from "@/constants/services";
+import type { ISupportedServices } from "@/constants/services";
 import { StepsToLogin } from "@/constants/steps-to-login";
 import { StepsToPay } from "@/constants/steps-to-pay";
 import { EnvSchema, type IEnvSchema } from "@/constants/typed-env";
@@ -25,6 +22,7 @@ import { ApiError } from "./errors/API.error";
 import { HandledZodError } from "./errors/handled-zod.error";
 import { conjunctionList } from "./random";
 import pkg from "package.json";
+import { InjectedData } from "./injected-data";
 
 /**
  *  Used to hide not so important things \
@@ -73,11 +71,7 @@ export class SequenceUtilities {
 	>();
 
 	static ServiceData: IServiceData = {
-		statuses: {
-			[SupportedServices.enum.Aysa]: true,
-			[SupportedServices.enum.Edesur]: false,
-			[SupportedServices.enum.Telecentro]: false,
-		},
+		statuses: InjectedData.ServicesStatuses,
 	};
 	static {
 		try {
@@ -102,12 +96,11 @@ export class SequenceUtilities {
 			if (res.error) throw new HandledZodError(res.error);
 			SequenceUtilities.ENV = res.data;
 			SequenceUtilities.DEV_MODE = res.data.stage === "development";
-
 		} catch (error) {
 			cancel(
 				`Ha ocurrido un error al iniciar el CLI:\n${(error as Error).message}`,
 			);
-			process.exit(0)
+			process.exit(0);
 		}
 	}
 

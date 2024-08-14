@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 import { StoredPaymentMethodManager } from "./paymentMethod.schema.js";
 import { UserServiceManager } from "./userServiceField.schema.js";
+import { FlagConfigManager } from "./flags.schema.js";
 
 type LastV = "0.0.0"
 
@@ -17,7 +18,7 @@ class UserDataSchema
 	implements SchemaUtilities {
 
 	static "0.0.0" = z.object({
-		secureMode: z.boolean().default(true),
+		flags: FlagConfigManager.getLastSchema(),
 		serviceFields: UserServiceManager.getLastSchema().default({}),
 		paymentMethods: StoredPaymentMethodManager.getLastSchema()
 			.optional()

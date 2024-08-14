@@ -37,8 +37,8 @@ export async function selectMenuActionPrompt(
 				hint: `Añade, elimina o modifica tus metodos de pago. ${noPayMethods ? picocolors.yellow("[Necesitas al menos 1 para efectuar pagos]") : ""}`,
 			},
 			{
-				label: `Modo seguro: ${userData.secureMode ? picocolors.green("Activado") : `${picocolors.red("Desactivado")} - ${picocolors.yellow("[Ten cuidado a quien muestras tus datos]")}`}`,
-				value: "secureMode",
+				label: "Configuración",
+				value: "flags",
 				hint: "Oculta o no el valor de los campos con información sensible",
 			},
 			{

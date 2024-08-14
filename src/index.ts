@@ -21,6 +21,7 @@ import { EncryptedDataManager } from "./schemas/encryptedData.schema";
 import type { IBillContext } from "./types/generic";
 import { SequenceUtilities } from "./utils/SequenceUtilities";
 import { getServicesWithAllFilledLogins, sortBills } from "./utils/random";
+import { flagsPrompt } from "./prompts/flags.prompt";
 
 const startAt = Date.now();
 nodeCleanup((exitCode) =>
@@ -113,8 +114,8 @@ export class Sequence extends SequenceUtilities {
 				this.PASS = await changePasswordPrompt(this.PASS);
 				await this.update();
 				return await this.#waitForUserMenuAction();
-			case "secureMode":
-				this.DATA.secureMode = !this.DATA.secureMode;
+			case "flags":
+				await flagsPrompt(this.DATA);
 				await this.update();
 				return await this.#waitForUserMenuAction();
 			default:
@@ -162,7 +163,7 @@ export class Sequence extends SequenceUtilities {
 		// if (this.#BROWSER) return await proceed()
 		if (this.BROWSER) await this.closeWeb();
 
-		this.BROWSER = await firefox.launch({ headless: true });
+		this.BROWSER = await firefox.launch({ headless: this.DATA.flags.headless });
 		this.CTX = await this.BROWSER.newContext({ locale: "es-AR" });
 		this.CTX.setDefaultNavigationTimeout(60_000);
 		this.CTX.route(

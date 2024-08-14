@@ -39,7 +39,6 @@ export async function selectMenuActionPrompt(
 			{
 				label: "Configuración",
 				value: "flags",
-				hint: "Oculta o no el valor de los campos con información sensible",
 			},
 			{
 				label: "Cambiar contraseña",
